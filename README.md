@@ -101,5 +101,5 @@ The app will be available at `http://localhost:5000`.
 ---
 
 ## 👨‍💻 Author
-**Srivatsan** 
+**Srivatsan R** 
 - GitHub: [@srivatsan2007](https://github.com/srivatsan2007)
