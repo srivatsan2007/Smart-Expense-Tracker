@@ -1,0 +1,222 @@
+/* Floating Action Button */
+.calc-fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 10px 25px rgba(74, 144, 226, 0.4);
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.calc-fab:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(74, 144, 226, 0.6);
+}
+
+/* Overlay */
+.calc-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.calc-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Bottom Sheet */
+.calc-sheet {
+  position: fixed;
+  bottom: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 400px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 30px 30px 0 0;
+  padding: 25px;
+  z-index: 1002;
+  transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.calc-sheet.active {
+  bottom: 0;
+}
+
+.calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calc-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+
+.calc-close {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.calc-close:hover {
+  opacity: 1;
+}
+
+/* Display */
+.calc-display-container {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: right;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .calc-display-container {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.calc-history {
+  min-height: 20px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.6;
+  margin-bottom: 5px;
+}
+
+.calc-current {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Keypad Grid */
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.calc-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  padding: 15px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+[data-theme="dark"] .calc-btn {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calc-btn:active {
+  transform: scale(0.95);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.calc-btn.operator {
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--primary-color);
+  border-color: rgba(74, 144, 226, 0.2);
+}
+
+.calc-btn.equals {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  grid-row: span 2;
+}
+
+.calc-btn.action {
+  background: rgba(255, 99, 132, 0.1);
+  color: var(--danger-color);
+  border-color: rgba(255, 99, 132, 0.2);
+}
+
+.calc-btn.financial {
+  background: rgba(138, 201, 38, 0.1);
+  color: var(--success-color);
+  border-color: rgba(138, 201, 38, 0.2);
+  font-size: 0.9rem;
+}
+
+/* Modal for Financial Inputs */
+.calc-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg);
+  border-radius: 30px 30px 0 0;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 1003;
+}
+
+.calc-modal.active {
+  transform: translateY(0);
+}
+
+.calc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.calc-modal-body .form-group {
+  margin-bottom: 15px;
+}
+
+.calc-modal-body input {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .calc-modal-body input {
+  background: rgba(0, 0, 0, 0.2);
+}

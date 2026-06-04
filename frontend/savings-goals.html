@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Savings Goals - Smart Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+        }
+        .goal-card {
+            margin-bottom: 20px;
+        }
+    </style>
+    <link rel="stylesheet" href="css/calculator.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo" style="text-align: center; padding: 15px 0;">
+                <img src="images/logo.png" alt="Smart Tracker Logo" style="max-width: 80px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.2rem; margin: 0;">Smart Tracker</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fas fa-chart-line" style="width: 25px;"></i> Dashboard</a></li>
+                <li><a href="expenses.html"><i class="fas fa-wallet" style="width: 25px;"></i> Expenses</a></li>
+                <li><a href="bills.html"><i class="fas fa-file-invoice" style="width: 25px;"></i> Bills</a></li>
+                <li><a href="salary.html"><i class="fas fa-money-bill-wave" style="width: 25px;"></i> Salary</a></li>
+                <li><a href="savings-goals.html" class="active"><i class="fas fa-bullseye" style="width: 25px;"></i> Savings Goals</a></li>
+                <li><a href="reports.html"><i class="fas fa-file-export" style="width: 25px;"></i> Reports</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog" style="width: 25px;"></i> Settings</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a></li>
+            </ul>
+            <div class="theme-switch" id="theme-switch">
+                <i class="fas fa-moon"></i> <span style="margin-left: 10px;">Toggle Theme</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Savings Goals</h1>
+                    <p style="color: #777;">Track your dreams</p>
+                </div>
+            </div>
+
+            <!-- Add Goal Form -->
+            <div class="glass-card" style="margin-bottom: 30px;">
+                <h3>Create New Goal</h3>
+                <form id="goal-form" class="form-grid" style="margin-top: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" id="name" class="form-control" placeholder="Goal Name (e.g. Laptop Fund)" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="number" id="targetAmount" class="form-control" placeholder="Target Amount (₹)" required step="0.01">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="number" id="currentAmount" class="form-control" placeholder="Initial Deposit (₹)" value="0" step="0.01">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="date" id="targetDate" class="form-control">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Goal</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Goals List -->
+            <div id="goals-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <!-- Populated via JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Update Modal -->
+    <div id="update-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+        <div class="glass-card" style="width: 90%; max-width: 400px;">
+            <h3>Update Goal</h3>
+            <form id="update-goal-form" style="margin-top: 15px;">
+                <input type="hidden" id="update-goal-id">
+                <div class="form-group">
+                    <label>Current Amount Saved (₹)</label>
+                    <input type="number" id="update-current" class="form-control" required step="0.01">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Update</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('update-modal').style.display='none'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/savings.js"></script>
+    <script src="js/calculator.js"></script>
+</body>
+</html>

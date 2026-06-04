@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Smart Expense Tracker - Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="manifest" href="manifest.json">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/calculator.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="logo-anim">Smart Tracker</div>
+    </div>
+
+    <!-- Main Landing Content -->
+    <div class="landing-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 20px;">
+        <div class="glass-card" style="max-width: 600px;">
+            <h1 style="margin-bottom: 20px; font-size: clamp(1.8rem, 5vw, 2.5rem); background: -webkit-linear-gradient(45deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Smart Expense Tracker</h1>
+            <p style="margin-bottom: 40px; font-size: clamp(0.9rem, 3vw, 1.1rem); line-height: 1.6;">Take control of your finances with our modern, AI-powered expense tracking solution. Scan receipts, analyze trends, and achieve your savings goals.</p>
+            
+            <div style="display: flex; gap: 20px; justify-content: center;">
+                <a href="login.html" class="btn btn-primary">Login to Account</a>
+                <a href="register.html" class="btn btn-secondary">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Splash screen logic
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+            }, 1000);
+            
+            // Check if user is already logged in
+            if(localStorage.getItem('token')) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.error('SW reg error', err));
+            });
+        }
+    </script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/calculator.js"></script>
+</body>
+</html>

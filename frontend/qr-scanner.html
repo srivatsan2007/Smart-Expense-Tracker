@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>QR Scanner - Smart Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .scanner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo" style="text-align: center; padding: 15px 0;">
+                <img src="images/logo.png" alt="Smart Tracker Logo" style="max-width: 80px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" onerror="this.src='https://via.placeholder.com/80?text=Logo'">
+                <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.2rem; margin: 0;">Smart Tracker</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fas fa-chart-line" style="width: 25px;"></i> Dashboard</a></li>
+                <li><a href="expenses.html"><i class="fas fa-wallet" style="width: 25px;"></i> Expenses</a></li>
+                <li><a href="bills.html"><i class="fas fa-file-invoice" style="width: 25px;"></i> Bills</a></li>
+                <li><a href="salary.html"><i class="fas fa-money-bill-wave" style="width: 25px;"></i> Salary</a></li>
+                <li><a href="savings-goals.html"><i class="fas fa-bullseye" style="width: 25px;"></i> Savings Goals</a></li>
+                <li><a href="reports.html" class="active"><i class="fas fa-file-export" style="width: 25px;"></i> Reports</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog" style="width: 25px;"></i> Settings</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a></li>
+            </ul>
+            <div class="theme-switch" id="theme-switch">
+                <i class="fas fa-moon"></i> <span style="margin-left: 10px;">Toggle Theme</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Scan Expense QR</h1>
+                    <p style="color: #777;">Scan a QR code to automatically fill expense details.</p>
+                </div>
+                <a href="reports.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 30px; max-width: 600px; margin: 0 auto;">
+                <div class="glass-card scanner-container">
+                    <h3>Scan QR Code</h3>
+                    <p style="margin-bottom: 20px; color: #666; text-align: center;">Position the QR code within the frame to scan automatically.</p>
+                    <div id="reader"></div>
+                    <div id="scan-result" style="display: none; width: 100%; margin-top: 20px; padding: 15px; background: rgba(74, 144, 226, 0.1); border-radius: 8px;">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/qr-scanner.js"></script>
+</body>
+</html>

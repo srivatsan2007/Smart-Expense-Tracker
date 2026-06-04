@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>QR Generator - Smart Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #qrCanvas {
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.2);
+            display: none;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo" style="text-align: center; padding: 15px 0;">
+                <img src="images/logo.png" alt="Smart Tracker Logo" style="max-width: 80px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" onerror="this.src='https://via.placeholder.com/80?text=Logo'">
+                <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.2rem; margin: 0;">Smart Tracker</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html"><i class="fas fa-chart-line" style="width: 25px;"></i> Dashboard</a></li>
+                <li><a href="expenses.html"><i class="fas fa-wallet" style="width: 25px;"></i> Expenses</a></li>
+                <li><a href="bills.html"><i class="fas fa-file-invoice" style="width: 25px;"></i> Bills</a></li>
+                <li><a href="salary.html"><i class="fas fa-money-bill-wave" style="width: 25px;"></i> Salary</a></li>
+                <li><a href="savings-goals.html"><i class="fas fa-bullseye" style="width: 25px;"></i> Savings Goals</a></li>
+                <li><a href="reports.html" class="active"><i class="fas fa-file-export" style="width: 25px;"></i> Reports</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog" style="width: 25px;"></i> Settings</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a></li>
+            </ul>
+            <div class="theme-switch" id="theme-switch">
+                <i class="fas fa-moon"></i> <span style="margin-left: 10px;">Toggle Theme</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Generate Expense QR</h1>
+                    <p style="color: #777;">Share expenses and split bills easily.</p>
+                </div>
+                <a href="reports.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Reports</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <!-- QR Form -->
+                <div class="glass-card">
+                    <h3>Expense Details</h3>
+                    <form id="qr-form" style="margin-top: 20px;">
+                        <div id="expense-items-container">
+                            <div class="expense-item" style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; position: relative;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Amount</label>
+                                        <input type="number" class="form-control item-amount" placeholder="e.g., 500" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Category</label>
+                                        <select class="form-control item-category" required>
+                                            <option value="Food">Food & Dining</option>
+                                            <option value="Transportation">Transportation</option>
+                                            <option value="Shopping">Shopping</option>
+                                            <option value="Housing">Housing/Rent</option>
+                                            <option value="Bills">Bills & Utilities</option>
+                                            <option value="Entertainment">Entertainment</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <input type="text" class="form-control item-description" placeholder="e.g., Internet Bill" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="add-item-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 15px; border-style: dashed;">
+                            <i class="fas fa-plus"></i> Add Another Expense
+                        </button>
+
+                        <button type="submit" id="generate-btn" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-qrcode"></i> Generate PDF & QR Code
+                        </button>
+                    </form>
+                </div>
+
+                <!-- QR Display -->
+                <div class="glass-card qr-container">
+                    <h3>Generated QR Code</h3>
+                    <canvas id="qrCanvas"></canvas>
+                    <div id="qr-actions" style="display: none; width: 100%; gap: 10px; margin-top: 15px;">
+                        <button onclick="downloadQR()" class="btn btn-primary" style="flex: 1;"><i class="fas fa-download"></i> Download</button>
+                        <button onclick="shareQR()" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-share-alt"></i> Share</button>
+                    </div>
+                    <p id="qr-status" style="margin-top: 15px; color: var(--primary-color); display: none;"><i class="fas fa-check-circle"></i> Saved to history!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/qr-generator.js"></script>
+</body>
+</html>

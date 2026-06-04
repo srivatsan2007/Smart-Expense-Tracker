@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Dashboard - Smart Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/calculator.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo" style="text-align: center; padding: 15px 0;">
+                <img src="images/logo.png" alt="Smart Tracker Logo" style="max-width: 80px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.2rem; margin: 0;">Smart Tracker</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="active"><i class="fas fa-chart-line" style="width: 25px;"></i> Dashboard</a></li>
+                <li><a href="expenses.html"><i class="fas fa-wallet" style="width: 25px;"></i> Expenses</a></li>
+                <li><a href="bills.html"><i class="fas fa-file-invoice" style="width: 25px;"></i> Bills</a></li>
+                <li><a href="salary.html"><i class="fas fa-money-bill-wave" style="width: 25px;"></i> Salary</a></li>
+                <li><a href="savings-goals.html"><i class="fas fa-bullseye" style="width: 25px;"></i> Savings Goals</a></li>
+                <li><a href="reports.html"><i class="fas fa-file-export" style="width: 25px;"></i> Reports</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog" style="width: 25px;"></i> Settings</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a></li>
+            </ul>
+            <div class="theme-switch" id="theme-switch">
+                <i class="fas fa-moon"></i> <span style="margin-left: 10px;">Toggle Theme</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1 id="welcome-msg">Dashboard</h1>
+                    <p style="color: #777;">Here's your financial overview</p>
+                </div>
+                <div class="header-actions">
+                    <a href="expenses.html" class="btn btn-primary"><i class="fas fa-plus"></i> Add Expense</a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="dashboard-cards">
+                <div class="glass-card stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-check-alt"></i></div>
+                    <div class="stat-details">
+                        <h3>Total Salary</h3>
+                        <p id="total-salary">₹0.00</p>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon" style="color: var(--danger-color); background: rgba(220,53,69,0.1);"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-details">
+                        <h3>Total Expenses</h3>
+                        <p id="total-expenses">₹0.00</p>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon" style="color: var(--success-color); background: rgba(40,167,69,0.1);"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="stat-details">
+                        <h3>Remaining Balance</h3>
+                        <p id="remaining-balance">₹0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="glass-card chart-card">
+                    <h3>Monthly Expenses</h3>
+                    <canvas id="barChart"></canvas>
+                </div>
+                <div class="glass-card chart-card">
+                    <h3>Expenses by Category</h3>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bill Reminders Widget -->
+            <div id="bill-alerts-container" style="margin-bottom: 20px;"></div>
+            
+            <div class="dashboard-cards" style="margin-bottom: 30px;">
+                <div class="glass-card" style="margin-bottom: 0;">
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Upcoming Bills
+                        <a href="bills.html" style="font-size: 0.8rem; color: var(--primary-color); text-decoration: none;">Manage</a>
+                    </h3>
+                    <div id="upcoming-bills-widget" style="margin-top: 15px;">
+                        <p style="text-align: center; color: #777;">Loading...</p>
+                    </div>
+                </div>
+                <div class="glass-card" style="margin-bottom: 0;">
+                    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                        Recent Paid Bills
+                    </h3>
+                    <div id="paid-bills-widget" style="margin-top: 15px;">
+                        <p style="text-align: center; color: #777;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="recent-transactions glass-card">
+                <h3>Recent Expenses</h3>
+                <div class="table-wrapper">
+                    <table id="recent-expenses-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+        <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/calculator.js"></script>
+</body>
+</html>

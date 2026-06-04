@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Admin Dashboard - Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .admin-table th, .admin-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .admin-table th {
+            background: rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+        [data-theme="dark"] .admin-table th {
+            background: rgba(255,255,255,0.05);
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge.admin {
+            background: rgba(138, 201, 38, 0.2);
+            color: var(--success-color);
+        }
+        .badge.user {
+            background: rgba(74, 144, 226, 0.2);
+            color: var(--primary-color);
+        }
+        .btn-delete {
+            background: rgba(255, 99, 132, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(255, 99, 132, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        <aside class="sidebar" id="sidebar">
+            <div class="logo" style="text-align: center; padding: 15px 0;">
+                <img src="images/logo.png" alt="Smart Tracker Logo" style="max-width: 80px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <h2 style="color: var(--primary-color); font-weight: 800; font-size: 1.2rem; margin: 0;">Smart Tracker</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="admin.html" class="active" id="admin-nav-item"><i class="fas fa-shield-alt" style="width: 25px;"></i> Admin Panel</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt" style="width: 25px;"></i> Logout</a></li>
+            </ul>
+            <div class="theme-switch" id="theme-switch">
+                <i class="fas fa-moon"></i> <span style="margin-left: 10px;">Toggle Theme</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1 id="welcome-msg">Admin Panel</h1>
+                    <p style="color: #777;">Manage users and system settings</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar" style="display: flex; align-items: center; background: rgba(255,255,255,0.8); padding: 8px 15px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.1);">
+                        <i class="fas fa-search" style="color: #777; margin-right: 10px;"></i>
+                        <input type="text" id="user-search" placeholder="Search users..." style="border: none; background: transparent; outline: none; width: 250px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Registered Users Management</h3>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Mobile Number</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Users will be injected here -->
+                                <tr>
+                                    <td colspan="5" style="text-align: center;">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/admin.js"></script>
+    <!-- We also need the calculator.js so it shows up -->
+    <link rel="stylesheet" href="css/calculator.css">
+    <script src="js/calculator.js"></script>
+</body>
+</html>

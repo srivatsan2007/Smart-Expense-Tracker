@@ -1,0 +1,21 @@
+{
+  "name": "Smart Expense Tracker",
+  "short_name": "ExpenseTracker",
+  "description": "A modern AI-powered expense tracking application.",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#F4F7F6",
+  "theme_color": "#4A90E2",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
