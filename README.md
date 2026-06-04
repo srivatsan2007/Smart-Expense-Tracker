@@ -26,13 +26,22 @@ A modern, responsive, mobile-first full-stack web application for tracking daily
 *(Replace the placeholder image links below by dragging and dropping your own screenshots into GitHub's editor)*
 
 ### Dashboard Overview
-<img src="https://via.placeholder.com/800x400.png?text=Dashboard+Screenshot+Here" width="800" alt="Dashboard View">
+<img width="3839" height="1649" alt="Screenshot 2026-06-04 113503" src="https://github.com/user-attachments/assets/205febd6-d522-402a-a883-b2876021bc14" />
+<img width="3839" height="1660" alt="Screenshot 2026-06-04 113442" src="https://github.com/user-attachments/assets/c398fe96-b15a-44fb-a60e-aa142bd0452d" />
 
-### Mobile Responsive Design
-<img src="https://via.placeholder.com/300x600.png?text=Mobile+View+Here" width="300" alt="Mobile View">
 
-### Premium PDF Generation
-<img src="https://via.placeholder.com/800x400.png?text=PDF+Invoice+Screenshot+Here" width="800" alt="PDF Invoice">
+### Expense 
+<img width="3839" height="1649" alt="Screenshot 2026-06-04 113503" src="https://github.com/user-attachments/assets/62bc34f9-58f9-479e-a4a3-a9e9617f00f5" />
+
+
+### Salary 
+<img width="3839" height="1661" alt="Screenshot 2026-06-04 113511" src="https://github.com/user-attachments/assets/1a87c610-6d04-45f1-b217-dde01e5b55e5" />
+
+### Reports
+<img width="3839" height="1665" alt="Screenshot 2026-06-04 113558" src="https://github.com/user-attachments/assets/2f9a0c1b-738e-4a50-bc55-180b059c5989" />
+<img width="3839" height="1663" alt="Screenshot 2026-06-04 113541" src="https://github.com/user-attachments/assets/99b663f3-7d9c-441f-8eda-3bcb5268a45f" />
+<img width="3839" height="1639" alt="Screenshot 2026-06-04 113527" src="https://github.com/user-attachments/assets/13a70fd3-5fad-4adf-baac-940cc0b97c17" />
+
 
 ---
 
