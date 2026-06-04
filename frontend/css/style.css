@@ -235,6 +235,8 @@ table {
   margin-left: 260px;
   padding: 30px;
   transition: margin 0.3s ease;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .nav-links {
