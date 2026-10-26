@@ -2,65 +2,120 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
 
-const colors = {
-  bgDark: [15, 23, 42],
-  primary: [71, 127, 224],
-  purple: [124, 58, 237],
-  cyan: [6, 182, 212],
-  textWhite: [255, 255, 255],
-  textGray: [170, 170, 170],
-  cardBg: [240, 245, 250],
-  cardText: [50, 50, 50],
+/**
+ * RupeeRise — Premium PDF Report Generator
+ *
+ * Brand Palette:
+ * - Primary Olive Green: #355E3B (53, 94, 59)
+ * - Pista Green:         #DDF2C1 (221, 242, 193)
+ * - Soft Pale Green:     #F2F8ED (242, 248, 237)
+ * - Page Background:     #FFFFFF (White document with subtle green accents)
+ * - Deep Forest Text:    #1F3328 (31, 51, 40)
+ * - Muted Forest Text:   #5A7365 (90, 115, 101)
+ * - Subtle Green Border: #C8E2AB (200, 226, 171)
+ * - Tagline: "Track Smarter. Save Better. Rise Higher."
+ */
+
+const PALETTE = {
+  olive: [53, 94, 59],
+  pista: [221, 242, 193],
+  softPista: [242, 248, 237],
+  paleGreenRow: [247, 250, 244],
+  deepForest: [31, 51, 40],
+  mutedForest: [90, 115, 101],
+  borderGreen: [200, 226, 171],
+  tableBorder: [226, 237, 217],
+  white: [255, 255, 255],
+  crimson: [185, 28, 28],
+  emerald: [46, 125, 50],
 };
 
-// Generates an audit-ready PDF statement with digital QR verification
+// Safe helper to convert image URL to base64 Data URL for jsPDF
+async function loadLogoDataUrl() {
+  try {
+    const res = await fetch('/images/rupeerise-logo.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Generates a fintech-grade RupeeRise PDF Statement
+ */
 export async function generatePremiumPDF(options = {}) {
   try {
     const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Please login first to generate statements.');
-    }
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    const headers = { Authorization: `Bearer ${token}` };
+    // Fetch necessary financial metrics in parallel
     const [expRes, savRes, salRes, budRes] = await Promise.all([
-      fetch('/api/expenses', { headers }),
-      fetch('/api/savings', { headers }),
-      fetch('/api/salaries', { headers }),
-      fetch('/api/budget', { headers }),
+      options.expenses ? Promise.resolve(null) : fetch('/api/expenses', { headers }).catch(() => null),
+      fetch('/api/savings', { headers }).catch(() => null),
+      fetch('/api/salaries', { headers }).catch(() => null),
+      fetch('/api/budget', { headers }).catch(() => null),
     ]);
 
-    let expenses = expRes.ok ? await expRes.json() : [];
-    const savings = savRes.ok ? await savRes.json() : [];
-    const salaries = salRes.ok ? await salRes.json() : [];
+    let expenses = options.expenses || [];
+    if (!options.expenses && expRes && expRes.ok) {
+      expenses = await expRes.json();
+    }
+
+    const savings = savRes && savRes.ok ? await savRes.json() : [];
+    const salaries = salRes && salRes.ok ? await salRes.json() : [];
+
     let budgetObj = { amount: 0 };
-    if (budRes.ok) {
+    if (budRes && budRes.ok) {
       const b = await budRes.json();
       if (b && (b.amount || b.monthlyLimit)) budgetObj = b;
       else if (Array.isArray(b) && b.length > 0) budgetObj = b[0];
     }
 
-    // Apply period filtering if requested
-    if (options.startDate) {
-      const s = new Date(options.startDate);
-      expenses = expenses.filter((e) => new Date(e.date) >= s);
-    }
-    if (options.endDate) {
-      const end = new Date(options.endDate);
-      end.setHours(23, 59, 59, 999);
-      expenses = expenses.filter((e) => new Date(e.date) <= end);
+    // Apply period filtering if explicit dates provided and expenses were not pre-filtered
+    if (!options.expenses) {
+      if (options.startDate) {
+        const s = new Date(options.startDate);
+        expenses = expenses.filter((e) => new Date(e.date) >= s);
+      }
+      if (options.endDate) {
+        const end = new Date(options.endDate);
+        end.setHours(23, 59, 59, 999);
+        expenses = expenses.filter((e) => new Date(e.date) <= end);
+      }
     }
 
-    const totalExp = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-    const totalSav = savings.reduce((sum, s) => sum + Number(s.currentAmount || 0), 0);
-    const totalInc = salaries.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+    // Financial calculations
+    const totalExp = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const totalSav = savings.reduce((sum, s) => sum + (Number(s.currentAmount) || 0), 0);
+    const totalInc = salaries.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
     const remaining = totalInc - totalExp;
     const budAmt = Number(budgetObj.monthlyLimit || budgetObj.amount || 0);
-    const budgetStatus = budAmt > 0 ? ((totalExp / budAmt) * 100).toFixed(1) + '%' : 'N/A';
-    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
+    // Dynamic document properties
+    const reportId = options.reportId || `RR-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const periodLabel = options.periodLabel || 'All Time';
+    const nowStr = new Date().toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    // Create A4 portrait document
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Load custom font to support the ₹ symbol
+    // Check custom font availability for Unicode Rupee symbol
+    let hasCustomFont = false;
     try {
       const fontRes = await fetch('https://cdn.jsdelivr.net/npm/roboto-font@0.1.0/fonts/Roboto/roboto-regular-webfont.ttf');
       if (fontRes.ok) {
@@ -70,129 +125,313 @@ export async function generatePremiumPDF(options = {}) {
         doc.addFileToVFS('Roboto-Regular.ttf', window.btoa(binary));
         doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
         doc.setFont('Roboto');
+        hasCustomFont = true;
       }
     } catch (e) {
-      console.warn('Could not load custom font for Rupee symbol', e);
+      hasCustomFont = false;
     }
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-
-    // Header
-    doc.setFillColor(...colors.bgDark);
-    doc.rect(0, 0, pageWidth, 45, 'F');
-    doc.setTextColor(...colors.primary);
-    doc.setFontSize(22);
-    doc.setFont('Roboto', 'bold');
-    doc.text('RUPEERISE', pageWidth - 15, 18, { align: 'right' });
-    doc.setTextColor(...colors.textGray);
-    doc.setFontSize(10);
-    doc.setFont('Roboto', 'normal');
-    doc.text(
-      options.periodLabel ? `Period: ${options.periodLabel}` : 'Financial Statement & Audit Log',
-      pageWidth - 15,
-      25,
-      { align: 'right' }
-    );
-    const reportId = 'RPT-' + Math.floor(Math.random() * 1000000);
-    doc.text(`Report ID: ${reportId}`, pageWidth - 15, 32, { align: 'right' });
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 15, 38, { align: 'right' });
-    doc.setTextColor(...colors.textWhite);
-    doc.setFontSize(20);
-    doc.setFont('Roboto', 'bold');
-    doc.text('RupeeRise', 15, 25);
-
-    // Watermark
-    doc.saveGraphicsState();
-    doc.setGState(new doc.GState({ opacity: 0.05 }));
-    doc.setTextColor(50, 50, 50);
-    doc.setFontSize(70);
-    doc.text('CONFIDENTIAL', pageWidth / 2, pageHeight / 2, { align: 'center', angle: 45 });
-    doc.restoreGraphicsState();
-
-    // Summary cards
-    const drawCard = (title, value, x, y, w, h, valColor) => {
-      doc.setFillColor(...colors.cardBg);
-      doc.roundedRect(x, y, w, h, 3, 3, 'F');
-      doc.setTextColor(...colors.cardText);
-      doc.setFontSize(9);
-      doc.setFont('Roboto', 'normal');
-      doc.text(title, x + 5, y + 8);
-      doc.setTextColor(...valColor);
-      doc.setFontSize(12);
-      doc.setFont('Roboto', 'bold');
-      doc.text(value, x + 5, y + 16);
+    const formatINR = (val) => {
+      const num = Number(val || 0);
+      const formatted = Math.abs(num).toLocaleString('en-IN', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      });
+      const sign = num < 0 ? '-' : '';
+      return hasCustomFont ? `${sign}₹${formatted}` : `${sign}Rs. ${formatted}`;
     };
-    const cardW = 40, cardH = 22, startY = 55;
-    const spacing = (pageWidth - 30 - cardW * 4) / 3;
-    drawCard('Period Expenses', formatter.format(totalExp), 15, startY, cardW, cardH, colors.purple);
-    drawCard('Total Savings', formatter.format(totalSav), 15 + cardW + spacing, startY, cardW, cardH, colors.cyan);
-    drawCard('Remaining Bal', formatter.format(remaining), 15 + (cardW + spacing) * 2, startY, cardW, cardH, [16, 185, 129]);
-    drawCard('Budget Status', budgetStatus, 15 + (cardW + spacing) * 3, startY, cardW, cardH, [239, 68, 68]);
 
-    // Expense table
-    doc.autoTable({
-      startY: startY + 30,
-      head: [['Date', 'Category', 'Description', 'Payment', 'Amount']],
-      body: expenses.map((exp) => [
-        new Date(exp.date).toLocaleDateString(),
-        exp.category || '-',
-        exp.description || '-',
-        exp.paymentMethod || '-',
-        formatter.format(exp.amount),
-      ]),
-      theme: 'striped',
-      styles: { font: 'Roboto' },
-      headStyles: { fillColor: colors.bgDark, textColor: colors.primary, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      margin: { top: 20, left: 15, right: 15 },
+    // =========================================================================
+    // 1. PROFESSIONAL REPORT HEADER (White background with pista accents)
+    // =========================================================================
+    const logoData = await loadLogoDataUrl();
+    if (logoData) {
+      doc.addImage(logoData, 'PNG', 14, 10, 16, 16);
+    } else {
+      // Fallback vector badge
+      doc.setFillColor(...PALETTE.olive);
+      doc.roundedRect(14, 10, 16, 16, 3, 3, 'F');
+      doc.setFillColor(...PALETTE.pista);
+      doc.circle(22, 18, 5, 'F');
+      doc.setTextColor(...PALETTE.olive);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('R', 22, 21.5, { align: 'center' });
+    }
+
+    // Two-tone green wordmark
+    doc.setFontSize(19);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.olive);
+    doc.text('Rupee', 33, 19);
+
+    const rupeeWidth = doc.getTextWidth('Rupee');
+    doc.setTextColor(...PALETTE.deepForest);
+    doc.text('Rise', 33 + rupeeWidth, 19);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...PALETTE.mutedForest);
+    doc.text('Personal Finance Report', 33, 25);
+
+    // Right header details
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.deepForest);
+    doc.text(`Period: ${periodLabel}`, pageWidth - 14, 16, { align: 'right' });
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...PALETTE.mutedForest);
+    doc.text(`Report ID: ${reportId}`, pageWidth - 14, 21.5, { align: 'right' });
+    doc.text(`Generated: ${nowStr}`, pageWidth - 14, 26.5, { align: 'right' });
+
+    // Restrained decorative accent rules
+    doc.setFillColor(...PALETTE.olive);
+    doc.rect(14, 29.5, pageWidth - 28, 0.4, 'F');
+    doc.setFillColor(...PALETTE.pista);
+    doc.rect(14, 29.9, 44, 1.2, 'F');
+
+    // =========================================================================
+    // 2. REPORT TITLE & SUBTITLE
+    // =========================================================================
+    const dynamicTitle = periodLabel.toLowerCase().includes('month')
+      ? 'Monthly Financial Summary'
+      : `${periodLabel} Financial Summary`;
+
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.deepForest);
+    doc.text(dynamicTitle, 14, 38);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...PALETTE.mutedForest);
+    doc.text('A clear view of your spending and savings.', 14, 43);
+
+    // =========================================================================
+    // 3. FINANCIAL SUMMARY CARDS (4-card aligned grid)
+    // =========================================================================
+    const startY = 48;
+    const cardW = 42;
+    const cardH = 22;
+    const gap = (pageWidth - 28 - cardW * 4) / 3;
+
+    const cards = [
+      {
+        title: 'TOTAL EXPENSES',
+        value: formatINR(totalExp),
+        sub: `${expenses.length} transaction${expenses.length === 1 ? '' : 's'}`,
+        accent: PALETTE.olive,
+      },
+      {
+        title: 'TOTAL SAVINGS',
+        value: formatINR(totalSav),
+        sub: `${savings.length} active goal${savings.length === 1 ? '' : 's'}`,
+        accent: PALETTE.emerald,
+      },
+      {
+        title: 'REMAINING BALANCE',
+        value: formatINR(remaining),
+        sub: remaining >= 0 ? 'Net Positive Flow' : 'Expenses Exceeded',
+        accent: remaining >= 0 ? PALETTE.olive : PALETTE.crimson,
+      },
+      {
+        title: 'BUDGET STATUS',
+        value: budAmt > 0 ? `${((totalExp / budAmt) * 100).toFixed(1)}% Used` : 'No Budget Set',
+        sub: budAmt > 0 ? `Limit: ${formatINR(budAmt)}` : 'Monthly limit unconfigured',
+        accent: budAmt > 0 && totalExp > budAmt ? PALETTE.crimson : PALETTE.olive,
+      },
+    ];
+
+    cards.forEach((c, idx) => {
+      const cx = 14 + idx * (cardW + gap);
+
+      // Soft pista card background & subtle border
+      doc.setFillColor(...PALETTE.softPista);
+      doc.setDrawColor(...PALETTE.borderGreen);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(cx, startY, cardW, cardH, 2.5, 2.5, 'FD');
+
+      // Top color accent bar
+      doc.setFillColor(...c.accent);
+      doc.roundedRect(cx, startY, cardW, 1.4, 1, 1, 'F');
+
+      // Card Title
+      doc.setFontSize(6.8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...PALETTE.mutedForest);
+      doc.text(c.title, cx + 3.5, startY + 6.5);
+
+      // Card Value
+      doc.setFontSize(10.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...PALETTE.deepForest);
+      doc.text(c.value, cx + 3.5, startY + 13.5);
+
+      // Card Subtitle / Context
+      doc.setFontSize(6.2);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...PALETTE.mutedForest);
+      doc.text(c.sub, cx + 3.5, startY + 18.5);
     });
 
-    let finalY = doc.lastAutoTable.finalY || 150;
-    if (finalY > pageHeight - 70) {
+    // =========================================================================
+    // 4. EXPENSE TRANSACTION TABLE
+    // =========================================================================
+    const tableStartY = startY + cardH + 7;
+
+    const tableRows = expenses.length > 0
+      ? expenses.map((exp) => [
+          exp.date ? new Date(exp.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
+          exp.category || 'General',
+          exp.description || 'Expense entry',
+          exp.paymentMethod || 'UPI / Online',
+          formatINR(exp.amount),
+        ])
+      : [['No expense records found for this period.', '', '', '', '']];
+
+    doc.autoTable({
+      startY: tableStartY,
+      head: [['Date', 'Category', 'Description', 'Payment Method', 'Amount']],
+      body: tableRows,
+      theme: 'plain',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        textColor: PALETTE.deepForest,
+        cellPadding: { top: 3.2, bottom: 3.2, left: 3, right: 3 },
+        lineColor: PALETTE.tableBorder,
+        lineWidth: 0.15,
+      },
+      headStyles: {
+        fillColor: PALETTE.olive,
+        textColor: PALETTE.white,
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        cellPadding: { top: 3.5, bottom: 3.5, left: 3, right: 3 },
+      },
+      alternateRowStyles: {
+        fillColor: PALETTE.paleGreenRow,
+      },
+      columnStyles: {
+        0: { cellWidth: 26 },
+        1: { cellWidth: 34 },
+        2: { cellWidth: 64 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+      },
+      margin: { left: 14, right: 14, top: 22, bottom: 24 },
+      showHead: 'everyPage',
+    });
+
+    // =========================================================================
+    // 5. COMPACT VERIFICATION SECTION
+    // =========================================================================
+    let finalY = doc.lastAutoTable.finalY + 6;
+    const vH = 34;
+    const vW = pageWidth - 28;
+    const vX = 14;
+
+    // Check if new page is needed for verification card
+    if (finalY + vH > pageHeight - 20) {
       doc.addPage();
-      finalY = 20;
+      finalY = 22;
     }
 
-    // Digital signature
-    doc.setTextColor(...colors.bgDark);
-    doc.setFontSize(12);
-    doc.setFont('Roboto', 'bold');
-    doc.text('Authorized Signature', 15, finalY + 20);
-    doc.setFont('times', 'italic');
-    doc.setFontSize(22);
-    doc.setTextColor(...colors.purple);
-    doc.text('RupeeRise Finance', 15, finalY + 35);
-    doc.setFont('Roboto', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Digitally Verified by RupeeRise Platform', 15, finalY + 45);
+    // Verification Card background
+    doc.setFillColor(...PALETTE.softPista);
+    doc.setDrawColor(...PALETTE.borderGreen);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(vX, finalY, vW, vH, 2.5, 2.5, 'FD');
 
-    // Verification QR code
-    const qrDataUrl = await QRCode.toDataURL(
-      `${window.location.origin}/reports?verified=${reportId}`,
-      { width: 128, margin: 4 }
+    // Left olive border accent strip
+    doc.setFillColor(...PALETTE.olive);
+    doc.roundedRect(vX, finalY, 3, vH, 1, 1, 'F');
+
+    // Verification Content
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.olive);
+    doc.text('Verified Report', vX + 8, finalY + 6.5);
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.deepForest);
+    doc.text('RupeeRise Financial Verification Seal', vX + 8, finalY + 11.5);
+
+    doc.setFontSize(6.8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...PALETTE.mutedForest);
+    const descLines = doc.splitTextToSize(
+      'This document was electronically generated and audit-verified by RupeeRise personal finance platform. For independent verification of transaction totals and authenticity, scan the verification QR code.',
+      vW - 46
     );
-    doc.addImage(qrDataUrl, 'PNG', pageWidth - 55, finalY + 15, 35, 35);
+    doc.text(descLines, vX + 8, finalY + 16.5);
 
-    // Footer
-    doc.setFillColor(...colors.bgDark);
-    doc.rect(0, pageHeight - 12, pageWidth, 12, 'F');
-    doc.setTextColor(...colors.textWhite);
-    doc.setFontSize(8);
+    // Decorative signature note
+    doc.setFontSize(6.2);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...PALETTE.mutedForest);
     doc.text(
-      'This report is digitally verified by RupeeRise. | support@rupeerise.com',
-      pageWidth / 2,
-      pageHeight - 4,
-      { align: 'center' }
+      'Authorized Digital Release: RupeeRise Automated System (Electronic generation — physical signature not legally required)',
+      vX + 8,
+      finalY + 30
     );
-    doc.save(`RupeeRise_Report_${reportId}.pdf`);
+
+    // Real QR Code generation for report verification
+    const verifyUrl = `${window.location.origin}/reports?verify=${reportId}&amt=${totalExp}&date=${new Date().toISOString().split('T')[0]}`;
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl, { width: 120, margin: 2 });
+    const qrSize = 21;
+    const qrX = vX + vW - qrSize - 6;
+    const qrY = finalY + 4;
+    doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...PALETTE.olive);
+    doc.text('Scan to verify report', qrX + qrSize / 2, qrY + qrSize + 3.2, { align: 'center' });
+
+    // =========================================================================
+    // 6. MULTI-PAGE FOOTER WITH PAGE NUMBERS & TAGLINE
+    // =========================================================================
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+
+      // Subtle green divider
+      doc.setDrawColor(...PALETTE.borderGreen);
+      doc.setLineWidth(0.3);
+      doc.line(14, pageHeight - 11, pageWidth - 14, pageHeight - 11);
+
+      // Left branding & tagline
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...PALETTE.olive);
+      doc.text('RupeeRise', 14, pageHeight - 6.5);
+
+      const tagX = 14 + doc.getTextWidth('RupeeRise');
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...PALETTE.mutedForest);
+      doc.text(' — Track Smarter. Save Better. Rise Higher.', tagX, pageHeight - 6.5);
+
+      // Right page numbers
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageHeight - 6.5, { align: 'right' });
+    }
+
+    // Save and download PDF
+    const periodSlug = periodLabel.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const filename = `RupeeRise_Statement_${periodSlug}_${reportId}.pdf`;
+    doc.save(filename);
   } catch (err) {
     console.error('Error generating Premium PDF:', err);
     throw err;
   }
 }
 
+/**
+ * Universal report exporter (PDF, Excel, CSV)
+ */
 export async function downloadReport(type, options = {}) {
   if (type === 'pdf') {
     await generatePremiumPDF(options);

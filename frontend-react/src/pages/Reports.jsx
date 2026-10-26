@@ -213,7 +213,8 @@ export default function Reports() {
       await downloadReport(type, {
         startDate: activeRange.startDate,
         endDate: activeRange.endDate,
-        periodLabel: activeRange.label
+        periodLabel: activeRange.label,
+        expenses: filteredExpenses
       });
       notify(`${type.toUpperCase()} report generated successfully!`, 'success');
     } catch (err) {
