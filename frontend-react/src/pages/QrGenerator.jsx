@@ -390,9 +390,9 @@ export default function QrGenerator() {
         isOpen={showAtmModal}
         onClose={() => setShowAtmModal(false)}
         title="RupeeRise ATM Card & Split Terminal"
-        maxWidth={460}
+        maxWidth={740}
       >
-        <div style={{ maxHeight: '82vh', overflowY: 'auto', padding: '0 4px' }}>
+        <div style={{ maxHeight: '85vh', overflowY: 'auto', padding: '0 4px' }}>
           <AtmSplitReceipt />
         </div>
       </Modal>

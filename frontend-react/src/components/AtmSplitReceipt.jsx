@@ -8,7 +8,7 @@ import qrcode from "qrcode-generator"; // npm i qrcode-generator
  * No extra dependencies. All styles are scoped under .atm-app.
  */
 
-const W = 200, ROW = 88, FOOT = 108, TITLE_H = 96, ITEMS_PAD = 22, ITEM_H = 15, AMP = 4, PAD = 70;
+const W = 190, ROW = 70, FOOT = 84, TITLE_H = 70, ITEMS_PAD = 12, ITEM_H = 14, AMP = 4, PAD = 6;
 const MIN_MEMBERS = 2, MAX_MEMBERS = 6, MIN_ITEMS = 1, MAX_ITEMS = 5;
 
 // n = number of members (pieces), m = number of expense lines in the table
@@ -389,108 +389,117 @@ export default function AtmSplitReceipt() {
     }
   };
 
-  const slotY = PAD + H - 12;
+  const slotY = PAD + H - 10;
 
   return (
     <div className="atm-app">
       <style>{CSS}</style>
-      <h2 className="atm-heading">RupeeRise</h2>
-      <div className="atm-sub">Split the bill with friends &amp; family</div>
 
-      <div className="atm-stage" style={{ height: slotY + 438 }}>
-        {/* Paper comes out of the top slot and tears into one piece per member */}
-        <div className={`atm-tray ${phase}`} style={{ top: PAD, height: H, "--dur": `${dur}s` }}>
-          <div className="atm-wrap">
-            {cfg.names.map((_, i) => (
-              <div key={i} className="atm-half" style={pieceStyle(i, n, m)}><Receipt {...rp} /></div>
-            ))}
-          </div>
-        </div>
-
-        {/* Handheld terminal */}
-        <div className="atm-machine" style={{ top: slotY }}>
-          <div className="atm-cap"><div className="atm-slot" /><i className="atm-led" /></div>
-          <div className="atm-bezel">
-            <div className="atm-screen">
-              <div className="atm-statusbar"><span>9:41</span><span>▮▮▮</span></div>
-              <div className="atm-brand"><span className="atm-logo" />SBI Payments</div>
-              <div className="atm-banner"><em>{STATUS[phase]}</em></div>
-              <div className="atm-sale"><small>SALE</small><strong>{fmt(cfg.total)}</strong></div>
-              <div className="atm-menu">
-                {MENU.map(([g, l]) => (
-                  <div key={l}><b>{g}</b><span>{l}</span></div>
+      <div className="atm-layout">
+        {/* Left Column: Handheld ATM Machine Stage */}
+        <div className="atm-stage-wrapper">
+          <div className="atm-stage" style={{ height: slotY + 280 }}>
+            {/* Paper comes out of the top slot and tears into one piece per member */}
+            <div className={`atm-tray ${phase}`} style={{ top: PAD, height: H, "--dur": `${dur}s` }}>
+              <div className="atm-wrap">
+                {cfg.names.map((_, i) => (
+                  <div key={i} className="atm-half" style={pieceStyle(i, n, m)}><Receipt {...rp} /></div>
                 ))}
               </div>
             </div>
-          </div>
-          <div className="atm-nav"><span>☰</span><span>⌂</span><span>↩</span></div>
-        </div>
-      </div>
 
-      <div className="atm-form">
-        {/* What the money was spent on */}
-        <div className="atm-items">
-          <div className="atm-items-head"><span>Spent on</span><span>Amount (₹)</span><span /></div>
-          {form.items.map((it, i) => (
-            <div className="atm-item" key={i}>
-              <div className="atm-cat">
-                <select value={it.cat} onChange={setItem(i, "cat")} aria-label={`Expense ${i + 1} category`}>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c === "Other" ? "Other (type your own)" : c}</option>)}
-                </select>
-                {it.cat === "Other" && (
-                  <input maxLength={14} placeholder="e.g. Gift" value={it.custom}
-                    onChange={setItem(i, "custom")} aria-label={`Expense ${i + 1} name`} />
-                )}
+            {/* Handheld terminal */}
+            <div className="atm-machine" style={{ top: slotY }}>
+              <div className="atm-cap"><div className="atm-slot" /><i className="atm-led" /></div>
+              <div className="atm-bezel">
+                <div className="atm-screen">
+                  <div className="atm-statusbar"><span>9:41</span><span>▮▮▮</span></div>
+                  <div className="atm-brand"><span className="atm-logo" />RupeeRise Pay</div>
+                  <div className="atm-banner"><em>{STATUS[phase]}</em></div>
+                  <div className="atm-sale"><small>SALE</small><strong>{fmt(cfg.total)}</strong></div>
+                  <div className="atm-menu">
+                    {MENU.map(([g, l]) => (
+                      <div key={l}><b>{g}</b><span>{l}</span></div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <input type="number" min="0" inputMode="decimal" value={it.amt}
-                onChange={setItem(i, "amt")} aria-label={`Expense ${i + 1} amount`} />
-              <button type="button" className="atm-x" aria-label={`Remove expense ${i + 1}`}
-                disabled={!canEditLayout || form.items.length <= MIN_ITEMS}
-                onClick={() => removeItem(i)}>×</button>
+              <div className="atm-nav"><span>☰</span><span>⌂</span><span>↩</span></div>
             </div>
-          ))}
-          <div className="atm-items-foot">
-            <button type="button" className="atm-add" onClick={addItem}
-              disabled={!canEditLayout || form.items.length >= MAX_ITEMS}>+ Add item</button>
-            <span className="atm-sum">Total {fmt(sumItems(form.items))}</span>
           </div>
         </div>
 
-        {/* Who shares it */}
-        <div className="atm-items-head"><span>Split between</span></div>
-        <div className="atm-members">
-          {form.names.map((nm, i) => (
-            <div className="atm-member" key={i}>
-              <input maxLength={10} value={nm} onChange={setName(i)} aria-label={`Member ${i + 1} name`} />
-              <button type="button" className="atm-x" aria-label={`Remove member ${i + 1}`}
-                disabled={!canEditLayout || form.names.length <= MIN_MEMBERS}
-                onClick={() => removeMember(i)}>×</button>
-            </div>
-          ))}
-        </div>
+        {/* Right Column: Interactive Bill Controls */}
+        <div className="atm-form">
+          <div className="atm-panel-title">
+            <h4>Split Bill Details</h4>
+            <span>Customise items & members live</span>
+          </div>
 
-        <div className="atm-actions">
-          <button type="button" className="atm-add" onClick={addMember}
-            disabled={!canEditLayout || form.names.length >= MAX_MEMBERS}>
-            + Add member
-          </button>
-          <button type="button" className="atm-go" onClick={onPress} disabled={busy}>
-            {phase === "apart" ? "↻ New bill" : "✂ Split the bill"}
-          </button>
-        </div>
-        <div className="atm-actions">
-          <button type="button" className="atm-wa" onClick={shareWhatsApp} disabled={!hasBill}>
-            Share on WhatsApp
-          </button>
-          <button type="button" className="atm-add" onClick={saveImage} disabled={!hasBill}>
-            Save image
-          </button>
-        </div>
-        {shareMsg && <div className="atm-hint">{shareMsg}</div>}
-        <div className="atm-hint">
-          {phase === "apart"
-            ? "Edit the items or members, then tap New bill."
-            : `Up to ${MAX_ITEMS} items and ${MAX_MEMBERS} members. Adding one reprints the bill.`}
+          {/* What the money was spent on */}
+          <div className="atm-items">
+            <div className="atm-items-head"><span>Spent on</span><span>Amount (₹)</span><span /></div>
+            {form.items.map((it, i) => (
+              <div className="atm-item" key={i}>
+                <div className="atm-cat">
+                  <select value={it.cat} onChange={setItem(i, "cat")} aria-label={`Expense ${i + 1} category`}>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c === "Other" ? "Other (custom)" : c}</option>)}
+                  </select>
+                  {it.cat === "Other" && (
+                    <input maxLength={14} placeholder="e.g. Gift" value={it.custom}
+                      onChange={setItem(i, "custom")} aria-label={`Expense ${i + 1} name`} />
+                  )}
+                </div>
+                <input type="number" min="0" inputMode="decimal" value={it.amt}
+                  onChange={setItem(i, "amt")} aria-label={`Expense ${i + 1} amount`} />
+                <button type="button" className="atm-x" aria-label={`Remove expense ${i + 1}`}
+                  disabled={!canEditLayout || form.items.length <= MIN_ITEMS}
+                  onClick={() => removeItem(i)}>×</button>
+              </div>
+            ))}
+            <div className="atm-items-foot">
+              <button type="button" className="atm-add-btn" onClick={addItem}
+                disabled={!canEditLayout || form.items.length >= MAX_ITEMS}>+ Add item</button>
+              <span className="atm-sum">Total {fmt(sumItems(form.items))}</span>
+            </div>
+          </div>
+
+          {/* Who shares it */}
+          <div className="atm-items-head" style={{ marginTop: 6 }}><span>Split between</span></div>
+          <div className="atm-members">
+            {form.names.map((nm, i) => (
+              <div className="atm-member" key={i}>
+                <input maxLength={10} value={nm} onChange={setName(i)} aria-label={`Member ${i + 1} name`} />
+                <button type="button" className="atm-x" aria-label={`Remove member ${i + 1}`}
+                  disabled={!canEditLayout || form.names.length <= MIN_MEMBERS}
+                  onClick={() => removeMember(i)}>×</button>
+              </div>
+            ))}
+          </div>
+
+          <div className="atm-actions">
+            <button type="button" className="atm-add-btn" onClick={addMember}
+              disabled={!canEditLayout || form.names.length >= MAX_MEMBERS}>
+              + Add member
+            </button>
+            <button type="button" className="atm-go" onClick={onPress} disabled={busy}>
+              {phase === "apart" ? "↻ New bill" : "✂ Split the bill"}
+            </button>
+          </div>
+          <div className="atm-actions">
+            <button type="button" className="atm-wa" onClick={shareWhatsApp} disabled={!hasBill}>
+              Share on WhatsApp
+            </button>
+            <button type="button" className="atm-save-btn" onClick={saveImage} disabled={!hasBill}>
+              Save image
+            </button>
+          </div>
+          {shareMsg && <div className="atm-hint">{shareMsg}</div>}
+          <div className="atm-hint">
+            {phase === "apart"
+              ? "Edit items or members above, then tap New bill."
+              : `Up to ${MAX_ITEMS} items & ${MAX_MEMBERS} members. Live preview prints automatically.`}
+          </div>
         </div>
       </div>
     </div>
@@ -498,87 +507,557 @@ export default function AtmSplitReceipt() {
 }
 
 const CSS = `
-.atm-app{--text:#1b2540;--btn:#2a1f8f;--btntext:#fff;color:var(--text);display:flex;flex-direction:column;align-items:center;padding:20px 8px 40px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
-@media (prefers-color-scheme:dark){.atm-app{--text:#dbe4ff;--btn:#5b4be0}}
-.atm-heading{font-size:18px;margin:0 0 6px;text-align:center}
-.atm-sub{margin:0 0 8px;font-size:13px;opacity:.75;text-align:center}
-.atm-stage{position:relative;width:340px}
+.atm-app {
+  --text: #1b2540;
+  --btn: #2563eb;
+  --btntext: #fff;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 4px 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+}
+@media (prefers-color-scheme: dark) {
+  .atm-app {
+    --text: #dbe4ff;
+    --btn: #3b82f6;
+  }
+}
+
+.atm-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+@media (max-width: 680px) {
+  .atm-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+.atm-stage-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.atm-stage {
+  position: relative;
+  width: 230px;
+}
 
 /* Terminal */
-.atm-machine{position:absolute;left:50px;width:240px;height:430px;border-radius:30px 30px 34px 34px;background:linear-gradient(90deg,#e9edf3,#fff 30%,#f4f6fa 70%,#d9dfe8);box-shadow:0 24px 40px rgba(0,0,0,.35),inset 0 0 0 1px #c7cfdb;z-index:1}
-.atm-cap{position:absolute;top:0;left:0;right:0;height:62px;border-radius:30px 30px 0 0;background:linear-gradient(180deg,#5ec0ff,#2f9be8)}
-.atm-slot{position:absolute;top:6px;left:15px;right:15px;height:9px;border-radius:5px;background:#06223d;box-shadow:inset 0 2px 3px #000}
-.atm-led{position:absolute;top:34px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#8dffd0;box-shadow:0 0 6px #8dffd0}
-.atm-bezel{position:absolute;top:66px;left:12px;right:12px;height:302px;border-radius:14px;background:#0b0c10;padding:5px;box-sizing:border-box}
-.atm-screen{height:100%;border-radius:8px;background:#fff;overflow:hidden;display:flex;flex-direction:column;color:#222}
-.atm-statusbar{display:flex;justify-content:space-between;padding:2px 6px;font-size:7px;background:#eceef5;color:#555}
-.atm-brand{display:flex;align-items:center;gap:6px;padding:5px 8px;font-weight:700;font-size:15px;color:#2a1f8f}
-.atm-logo{width:14px;height:14px;border-radius:50%;background:#1d8be0;box-shadow:inset 0 0 0 3px #fff,0 0 0 2px #1d8be0}
-.atm-banner{height:58px;background:linear-gradient(110deg,#6a5acd 0 30%,#d98a5b 30% 60%,#6fae5b 60%);display:flex;align-items:flex-end;padding:4px 6px}
-.atm-banner em{font-style:normal;font-size:10px;font-weight:600;color:#fff;background:rgba(20,10,60,.75);padding:3px 7px;border-radius:10px}
-.atm-sale{background:#2a1a7a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:6px 10px}
-.atm-sale small{font-size:9px}
-.atm-sale strong{font-size:19px}
-.atm-menu{flex:1;display:grid;grid-template-columns:repeat(3,1fr);align-content:space-evenly;padding:2px 4px;text-align:center}
-.atm-menu div{display:flex;flex-direction:column;align-items:center;gap:1px}
-.atm-menu b{font-size:16px;line-height:1.1;color:#333}
-.atm-menu span{font-size:7.5px;color:#444}
-.atm-nav{position:absolute;bottom:0;left:0;right:0;height:52px;display:flex;justify-content:space-around;align-items:center;color:#666;font-size:15px}
+.atm-machine {
+  position: absolute;
+  left: 5px;
+  width: 220px;
+  height: 280px;
+  border-radius: 24px 24px 28px 28px;
+  background: linear-gradient(90deg, #e9edf3, #fff 30%, #f4f6fa 70%, #d9dfe8);
+  box-shadow: 0 16px 30px rgba(0,0,0,.28), inset 0 0 0 1px #c7cfdb;
+  z-index: 1;
+}
+.atm-cap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(180deg, #477fe0, #2f69cc);
+}
+.atm-slot {
+  position: absolute;
+  top: 6px;
+  left: 14px;
+  right: 14px;
+  height: 7px;
+  border-radius: 4px;
+  background: #06223d;
+  box-shadow: inset 0 2px 3px #000;
+}
+.atm-led {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: #8dffd0;
+  box-shadow: 0 0 6px #8dffd0;
+}
+.atm-bezel {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  right: 10px;
+  height: 192px;
+  border-radius: 12px;
+  background: #0b0c10;
+  padding: 4px;
+  box-sizing: border-box;
+}
+.atm-screen {
+  height: 100%;
+  border-radius: 7px;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #222;
+}
+.atm-statusbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 5px;
+  font-size: 7px;
+  background: #eceef5;
+  color: #555;
+}
+.atm-brand {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e3a8a;
+}
+.atm-logo {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px #2563eb;
+}
+.atm-banner {
+  height: 32px;
+  background: linear-gradient(110deg, #4f46e5 0 30%, #ea580c 30% 60%, #16a34a 60%);
+  display: flex;
+  align-items: flex-end;
+  padding: 3px 5px;
+}
+.atm-banner em {
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.atm-sale {
+  background: #1e3a8a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 8px;
+}
+.atm-sale small {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.atm-sale strong {
+  font-size: 14px;
+}
+.atm-menu {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: space-evenly;
+  padding: 2px 3px;
+  text-align: center;
+}
+.atm-menu div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.atm-menu b {
+  font-size: 12px;
+  line-height: 1.1;
+  color: #334155;
+}
+.atm-menu span {
+  font-size: 7px;
+  color: #64748b;
+}
+.atm-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  color: #64748b;
+  font-size: 13px;
+}
 
 /* Paper */
-.atm-tray{position:absolute;left:70px;width:200px;z-index:2}
-.atm-tray.reset,.atm-tray.idle,.atm-tray.print,.atm-tray.ready{clip-path:inset(-800px -400px 0 -400px)}
-.atm-wrap{position:absolute;inset:0;transform:translateY(102%)}
-.atm-tray.print .atm-wrap,.atm-tray.ready .atm-wrap,.atm-tray.tear .atm-wrap,.atm-tray.apart .atm-wrap{transform:translateY(0)}
-.atm-tray.print .atm-wrap{transition:transform var(--dur,3.2s) cubic-bezier(.45,.05,.25,1)}
-.atm-tray.reset .atm-wrap{transition:none}
-.atm-half{position:absolute;inset:0;transition:transform 1.1s cubic-bezier(.3,.8,.25,1);filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))}
-.atm-tray.tear .atm-half{transform:var(--tear);transition-duration:1.3s}
-.atm-tray.apart .atm-half{transform:var(--apart);transition-duration:1.3s}
-@media (prefers-reduced-motion:reduce){.atm-tray.print .atm-wrap{transition-duration:.01s}}
+.atm-tray {
+  position: absolute;
+  left: 20px;
+  width: 190px;
+  z-index: 2;
+}
+.atm-tray.reset, .atm-tray.idle, .atm-tray.print, .atm-tray.ready {
+  clip-path: inset(-800px -400px 0 -400px);
+}
+.atm-wrap {
+  position: absolute;
+  inset: 0;
+  transform: translateY(102%);
+}
+.atm-tray.print .atm-wrap, .atm-tray.ready .atm-wrap, .atm-tray.tear .atm-wrap, .atm-tray.apart .atm-wrap {
+  transform: translateY(0);
+}
+.atm-tray.print .atm-wrap {
+  transition: transform var(--dur, 2.8s) cubic-bezier(.45, .05, .25, 1);
+}
+.atm-tray.reset .atm-wrap {
+  transition: none;
+}
+.atm-half {
+  position: absolute;
+  inset: 0;
+  transition: transform 1.1s cubic-bezier(.3, .8, .25, 1);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.25));
+}
+.atm-tray.tear .atm-half {
+  transform: var(--tear);
+  transition-duration: 1.2s;
+}
+.atm-tray.apart .atm-half {
+  transform: var(--apart);
+  transition-duration: 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atm-tray.print .atm-wrap {
+    transition-duration: .01s;
+  }
+}
 
-.atm-receipt{width:200px;background:#fffdf6;color:#222;font-family:ui-monospace,Menlo,"Courier New",monospace;font-size:11px;display:flex;flex-direction:column;box-sizing:border-box}
-.atm-r-head{box-sizing:border-box;border-bottom:1px dashed #bbb}
-.atm-r-title{height:96px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;line-height:1.5;color:#555}
-.atm-r-title b{font-size:25px;line-height:1.3;letter-spacing:1px;color:#0b2a6b}
-.atm-r-title strong{font-size:15px;letter-spacing:.5px;color:#0b2a6b;margin-bottom:4px}
-.atm-r-items{padding:0 14px}
-.atm-r-items small{display:block;font-size:8px;letter-spacing:1.5px;color:#7a869f;line-height:16px;margin-bottom:6px}
-.atm-r-items .atm-row{font-size:10px;line-height:15px;color:#333;gap:8px}
-.atm-r-items .atm-row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atm-r-row{height:88px;padding:0 14px;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box}
-.atm-brandline{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#0b2a6b;text-align:center;line-height:1.4}
-.atm-for{font-size:9px;color:#555;text-align:center;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atm-r-row .atm-total{font-size:11px;line-height:1.5;font-weight:700;color:#333}
-.atm-share{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:3px;padding:5px 8px;border:1px dashed #0b2a6b;border-radius:6px;background:#eef3ff;color:#0b2a6b;font-weight:700;font-size:12px}
-.atm-share span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atm-r-foot{height:108px;padding:8px 14px;box-sizing:border-box;line-height:1.5;border-top:1px dashed #bbb;font-size:10px;color:#666;display:flex;flex-direction:column;align-items:center}
-.atm-r-foot .atm-row{width:100%}
-.atm-qr{width:72px;height:72px;margin-top:4px;display:block}
-.atm-row{display:flex;justify-content:space-between}
-.atm-bar{margin-top:4px;height:14px;background:repeating-linear-gradient(90deg,#222 0 2px,#fffdf6 2px 4px,#222 4px 5px,#fffdf6 5px 8px)}
+.atm-receipt {
+  width: 190px;
+  background: #fffdf6;
+  color: #222;
+  font-family: ui-monospace, Menlo, "Courier New", monospace;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.atm-r-head {
+  box-sizing: border-box;
+  border-bottom: 1px dashed #bbb;
+}
+.atm-r-title {
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  line-height: 1.35;
+  color: #555;
+  font-size: 9px;
+}
+.atm-r-title b {
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+  color: #0b2a6b;
+}
+.atm-r-items {
+  padding: 0 10px;
+}
+.atm-r-items small {
+  display: block;
+  font-size: 7.5px;
+  letter-spacing: 1.2px;
+  color: #7a869f;
+  line-height: 12px;
+  margin-bottom: 2px;
+}
+.atm-r-items .atm-row {
+  font-size: 9.5px;
+  line-height: 14px;
+  color: #333;
+  gap: 6px;
+}
+.atm-r-items .atm-row span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-r-row {
+  height: 70px;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.atm-brandline {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #0b2a6b;
+  text-align: center;
+  line-height: 1.3;
+}
+.atm-for {
+  font-size: 8.5px;
+  color: #555;
+  text-align: center;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-r-row .atm-total {
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #333;
+}
+.atm-share {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 3px 6px;
+  border: 1px dashed #0b2a6b;
+  border-radius: 5px;
+  background: #eef3ff;
+  color: #0b2a6b;
+  font-weight: 700;
+  font-size: 11px;
+}
+.atm-share span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-r-foot {
+  height: 84px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  line-height: 1.4;
+  border-top: 1px dashed #bbb;
+  font-size: 9px;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.atm-r-foot .atm-row {
+  width: 100%;
+}
+.atm-qr {
+  width: 58px;
+  height: 58px;
+  margin-top: 2px;
+  display: block;
+}
+.atm-row {
+  display: flex;
+  justify-content: space-between;
+}
 
 /* Controls */
-.atm-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px}
-.atm-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}
-.atm-form input,.atm-form select{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #8ea6d8;background:transparent;color:var(--text);font-size:14px;min-width:0}
-.atm-amt{width:130px}
-.atm-members{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.atm-member{display:flex;gap:4px;min-width:0}
-.atm-member input{flex:1;width:100%}
-.atm-form button{font-size:14px;font-weight:600;cursor:pointer;border-radius:999px;border:0}
-.atm-form button:disabled{opacity:.4;cursor:default}
-.atm-x{width:32px;background:transparent;color:var(--text);border:1px solid #8ea6d8!important;font-size:16px;flex:none}
-.atm-actions{display:flex;gap:8px;justify-content:space-between}
-.atm-add{padding:10px 16px;background:transparent;color:var(--text);border:1px solid var(--btn)!important}
-.atm-go{padding:10px 22px;background:var(--btn);color:var(--btntext)}
-.atm-wa{padding:10px 16px;background:#168a46;color:#fff}
-.atm-form select option{color:#111;background:#fff}
-.atm-items{display:flex;flex-direction:column;gap:6px}
-.atm-items-head{display:grid;grid-template-columns:1fr 96px 32px;gap:6px;font-size:12px;opacity:.75}
-.atm-item{display:grid;grid-template-columns:1fr 96px 32px;gap:6px;align-items:start}
-.atm-cat{display:flex;flex-direction:column;gap:4px;min-width:0}
-.atm-items-foot{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
-.atm-sum{font-weight:700;font-size:14px}
-.atm-hint{font-size:12px;opacity:.7;text-align:center}
+.atm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  box-sizing: border-box;
+}
+.atm-panel-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.atm-panel-title h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.atm-panel-title span {
+  font-size: 11px;
+  color: #64748b;
+}
+.atm-form input, .atm-form select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 12px;
+  min-width: 0;
+  transition: border-color .15s ease;
+}
+.atm-form input:focus, .atm-form select:focus {
+  outline: none;
+  border-color: #477fe0;
+  background: #fff;
+}
+.atm-members {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.atm-member {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+.atm-member input {
+  flex: 1;
+  width: 100%;
+}
+.atm-form button {
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 0;
+  transition: all .15s ease;
+}
+.atm-form button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+.atm-x {
+  width: 26px;
+  height: 28px;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #fca5a5!important;
+  font-size: 14px;
+  flex: none;
+  border-radius: 6px!important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.atm-x:hover:not(:disabled) {
+  background: #fee2e2;
+}
+.atm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+.atm-add-btn {
+  padding: 8px 12px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1!important;
+  flex: 1;
+}
+.atm-add-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+.atm-save-btn {
+  padding: 8px 12px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1!important;
+  flex: 1;
+}
+.atm-save-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+.atm-go {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  flex: 1.2;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+.atm-go:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.atm-wa {
+  padding: 8px 12px;
+  background: #16a34a;
+  color: #fff;
+  flex: 1.2;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.25);
+}
+.atm-wa:hover:not(:disabled) {
+  background: #15803d;
+}
+.atm-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.atm-items-head {
+  display: grid;
+  grid-template-columns: 1fr 80px 26px;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.atm-item {
+  display: grid;
+  grid-template-columns: 1fr 80px 26px;
+  gap: 6px;
+  align-items: start;
+}
+.atm-cat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.atm-items-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+.atm-sum {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e293b;
+}
+.atm-hint {
+  font-size: 11px;
+  opacity: .75;
+  text-align: center;
+  line-height: 1.3;
+}
 `;
