@@ -17,13 +17,30 @@ const SavingsGoals = lazy(() => import('./pages/SavingsGoals.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
 
 import SplashScreen from './components/SplashScreen.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
+
+function RouteLoading() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+      }}
+    >
+      <div className="loading-spinner" style={{ width: 36, height: 36 }} />
+    </div>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <SplashScreen />
-      <Suspense fallback={null}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<RouteLoading />}>
+          <Routes>
           {/* Main Clean SPA Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -59,6 +76,7 @@ export default function App() {
           <Route path="*" element={<Index />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

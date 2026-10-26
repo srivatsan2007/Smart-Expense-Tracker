@@ -324,7 +324,7 @@ export default function SavingsGoals() {
   };
 
   return (
-    <Layout title="Savings Goals - RupeeRise" active="savings">
+    <Layout title="Savings Goals - RupeeRise" active="savings-goals">
       {/* Page Header */}
       <PageHeader
         title="Savings Goals"
