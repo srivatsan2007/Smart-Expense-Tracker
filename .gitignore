@@ -29,3 +29,12 @@ yarn-error.log*
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Android Gradle build outputs & caches
+frontend-react/android/.gradle/
+frontend-react/android/build/
+frontend-react/android/app/build/
+frontend-react/android/local.properties
+*.apk
+*.aab
+

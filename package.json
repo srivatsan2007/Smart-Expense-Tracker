@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node backend/server.js",
     "build": "cd frontend-react && npm install --include=dev && npm run build",
-    "postinstall": "cd frontend-react && npm install --include=dev && npm run build"
+    "postinstall": "cd frontend-react && npm install --include=dev && npm run build",
+    "build:apk": "cd frontend-react && npm run build:apk"
   },
   "keywords": [],
   "author": "",

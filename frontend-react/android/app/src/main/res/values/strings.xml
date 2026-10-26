@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RupeeRise</string>
+    <string name="title_activity_main">RupeeRise</string>
+    <string name="package_name">com.rupeerise.app</string>
+    <string name="custom_url_scheme">com.rupeerise.app</string>
+</resources>
