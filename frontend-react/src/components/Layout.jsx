@@ -85,10 +85,10 @@ export default function Layout({ title, active, children }) {
             style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'contain' }}
           />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 800, fontSize: '1.12rem', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-              Rupee<span style={{ color: 'var(--success-color)' }}>Rise</span>
+            <span style={{ fontWeight: 800, fontSize: '1.12rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: '#FFFFFF' }}>
+              Rupee<span style={{ color: 'var(--color-accent)' }}>Rise</span>
             </span>
-            <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <span style={{ fontSize: '0.66rem', color: 'var(--sidebar-text-muted)', fontWeight: 500 }}>
               Track Smarter. Save Better.
             </span>
           </div>
@@ -129,8 +129,9 @@ export default function Layout({ title, active, children }) {
                 width: 34,
                 height: 34,
                 borderRadius: '50%',
-                background: 'var(--primary-light)',
-                color: 'var(--primary-color)',
+                background: 'rgba(221, 242, 193, 0.18)',
+                color: 'var(--color-accent)',
+                border: '1px solid rgba(221, 242, 193, 0.3)',
                 fontWeight: 700,
                 fontSize: '0.8rem',
                 display: 'flex',
@@ -158,8 +159,9 @@ export default function Layout({ title, active, children }) {
             style={{
               fontSize: '0.75rem',
               fontWeight: 600,
-              color: 'var(--primary-color)',
-              background: 'var(--primary-light)',
+              color: '#FFFFFF',
+              background: 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               padding: '2px 8px',
               borderRadius: 12,
             }}

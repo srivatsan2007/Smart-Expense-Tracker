@@ -244,8 +244,8 @@ export default function Dashboard() {
           {
             label: 'Expenses',
             data: values,
-            backgroundColor: 'rgba(71, 127, 224, 0.85)',
-            hoverBackgroundColor: '#477FE0',
+            backgroundColor: 'rgba(53, 94, 59, 0.85)',
+            hoverBackgroundColor: '#355E3B',
             borderRadius: 8,
             borderSkipped: false,
           },
@@ -268,7 +268,7 @@ export default function Dashboard() {
             ticks: { color: 'var(--text-secondary)', font: { family: 'Inter', size: 12 } },
           },
           y: {
-            grid: { color: 'rgba(226, 232, 240, 0.6)' },
+            grid: { color: 'rgba(224, 232, 220, 0.7)' },
             ticks: {
               color: 'var(--text-secondary)',
               font: { family: 'Inter', size: 12 },
@@ -430,8 +430,8 @@ export default function Dashboard() {
             title="Total Income"
             value={formatINR(totalSal)}
             icon={Wallet}
-            iconColor="#10B981"
-            iconBg="rgba(16, 185, 129, 0.1)"
+            iconColor="var(--success-color)"
+            iconBg="var(--success-light)"
             badgeText={salaries.length > 0 ? `${salaries.length} Records` : 'No salary added'}
             badgeType={salaries.length > 0 ? 'success' : 'neutral'}
           />
@@ -440,8 +440,8 @@ export default function Dashboard() {
             title="Total Expenses"
             value={formatINR(totalExp)}
             icon={Receipt}
-            iconColor="#EF4444"
-            iconBg="rgba(239, 68, 68, 0.1)"
+            iconColor="var(--danger-color)"
+            iconBg="var(--danger-light)"
             badgeText={`${expenses.length} Transactions`}
             badgeType="neutral"
           />
@@ -450,8 +450,8 @@ export default function Dashboard() {
             title="Remaining Balance"
             value={formatINR(balance)}
             icon={PiggyBank}
-            iconColor={balance >= 0 ? '#477FE0' : '#EF4444'}
-            iconBg={balance >= 0 ? 'var(--primary-light)' : 'rgba(239, 68, 68, 0.1)'}
+            iconColor={balance >= 0 ? 'var(--primary-color)' : 'var(--danger-color)'}
+            iconBg={balance >= 0 ? 'var(--primary-light)' : 'var(--danger-light)'}
             badgeText={balance >= 0 ? 'Surplus' : 'Deficit'}
             badgeType={balance >= 0 ? 'primary' : 'danger'}
           />
@@ -460,8 +460,8 @@ export default function Dashboard() {
             title="Savings Rate"
             value={savingsRate !== null ? `${savingsRate}%` : 'N/A'}
             icon={TrendingUp}
-            iconColor="#8B5CF6"
-            iconBg="rgba(139, 92, 246, 0.1)"
+            iconColor="var(--primary-color)"
+            iconBg="var(--primary-light)"
             subtitle={totalSal > 0 ? 'Of total recorded income' : 'Record salary to calculate'}
             badgeText={savingsRate !== null && Number(savingsRate) > 20 ? 'Healthy' : undefined}
             badgeType="success"

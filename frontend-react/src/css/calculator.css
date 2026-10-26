@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  box-shadow: 0 10px 25px rgba(74, 144, 226, 0.4);
+  box-shadow: 0 10px 25px rgba(53, 94, 59, 0.35);
   cursor: pointer;
   z-index: 1000;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
@@ -20,7 +20,7 @@
 
 .calc-fab:hover {
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(74, 144, 226, 0.6);
+  box-shadow: 0 15px 35px rgba(53, 94, 59, 0.5);
 }
 
 /* Overlay */
@@ -157,28 +157,28 @@
 }
 
 .calc-btn.operator {
-  background: rgba(74, 144, 226, 0.1);
+  background: var(--primary-light);
   color: var(--primary-color);
-  border-color: rgba(74, 144, 226, 0.2);
+  border-color: var(--primary-border);
 }
 
 .calc-btn.equals {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(135deg, var(--primary-color), var(--color-forest));
   color: white;
   border: none;
   grid-row: span 2;
 }
 
 .calc-btn.action {
-  background: rgba(255, 99, 132, 0.1);
+  background: var(--danger-light);
   color: var(--danger-color);
-  border-color: rgba(255, 99, 132, 0.2);
+  border-color: var(--danger-border);
 }
 
 .calc-btn.financial {
-  background: rgba(138, 201, 38, 0.1);
+  background: var(--success-light);
   color: var(--success-color);
-  border-color: rgba(138, 201, 38, 0.2);
+  border-color: var(--success-border);
   font-size: 0.9rem;
 }
 

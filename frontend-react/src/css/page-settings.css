@@ -7,13 +7,13 @@
             font-weight: 500;
         }
         .alert-warning {
-            background: rgba(255, 193, 7, 0.2);
+            background: var(--warning-light);
             color: var(--warning-color);
-            border: 1px solid var(--warning-color);
+            border: 1px solid var(--warning-border);
         }
         .alert-danger {
-            background: rgba(220, 53, 69, 0.2);
+            background: var(--danger-light);
             color: var(--danger-color);
-            border: 1px solid var(--danger-color);
+            border: 1px solid var(--danger-border);
         }
     

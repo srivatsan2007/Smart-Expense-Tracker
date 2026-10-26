@@ -9,14 +9,14 @@ import '../css/style.css';
 // Builds the receipt PDF on the fly from the Firestore document.
 function buildReceiptPdf(expenseData) {
   const doc = new jsPDF();
-  doc.setFillColor(30, 41, 59);
+  doc.setFillColor(31, 51, 40);
   doc.rect(0, 0, 210, 40, 'F');
-  doc.setTextColor(71, 127, 224);
+  doc.setTextColor(221, 242, 193);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.text('RUPEERISE', 20, 25);
 
-  doc.setTextColor(70, 70, 70);
+  doc.setTextColor(31, 51, 40);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text(`Receipt ID: ${expenseData.expenseId}`, 20, 55);
@@ -25,8 +25,9 @@ function buildReceiptPdf(expenseData) {
     : new Date().toLocaleString();
   doc.text(`Date: ${dateStr}`, 20, 65);
 
-  doc.setFillColor(241, 245, 249);
+  doc.setFillColor(237, 245, 229);
   doc.rect(20, 75, 170, 10, 'F');
+  doc.setTextColor(31, 51, 40);
   doc.setFont('helvetica', 'bold');
   doc.text('Description', 25, 82);
   doc.text('Category', 110, 82);
@@ -49,16 +50,16 @@ function buildReceiptPdf(expenseData) {
   }
 
   doc.setLineWidth(0.5);
-  doc.setDrawColor(226, 232, 240);
+  doc.setDrawColor(224, 232, 220);
   doc.line(20, y, 190, y);
   y += 10;
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL AMOUNT', 110, y);
-  doc.setTextColor(71, 127, 224);
+  doc.setTextColor(53, 94, 59);
   doc.text(`Rs. ${(expenseData.totalAmount || expenseData.amount || 0).toFixed(2)}`, 155, y);
 
   y += 35;
-  doc.setTextColor(148, 163, 184);
+  doc.setTextColor(100, 112, 103);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
   doc.text('Digitally Verified & Encrypted by RupeeRise Platform', 20, y);

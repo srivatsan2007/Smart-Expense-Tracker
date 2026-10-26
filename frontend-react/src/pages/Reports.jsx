@@ -579,7 +579,7 @@ export default function Reports() {
                 width: 44,
                 height: 44,
                 borderRadius: 12,
-                background: 'rgba(71, 127, 224, 0.12)',
+                background: 'var(--primary-light)',
                 color: 'var(--primary-color)',
                 display: 'flex',
                 alignItems: 'center',
@@ -843,7 +843,7 @@ export default function Reports() {
                 borderRadius: 14,
                 padding: '32px 16px',
                 textAlign: 'center',
-                background: dragActive ? 'rgba(71, 127, 224, 0.05)' : 'var(--bg-main)',
+                background: dragActive ? 'rgba(53, 94, 59, 0.08)' : 'var(--bg-main)',
                 transition: 'all 0.2s ease',
                 marginBottom: 16
               }}

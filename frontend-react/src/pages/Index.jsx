@@ -19,7 +19,7 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = 'Smart Tracker — Modern Personal Finance Dashboard';
+    document.title = 'RupeeRise — Track Smarter. Save Better. Rise Higher.';
     const timer = setTimeout(() => setSplashHidden(true), 800);
     // Already logged in? go straight to the dashboard
     if (localStorage.getItem('token')) {
@@ -38,7 +38,7 @@ export default function Index() {
   return (
     <>
       <div id="splash-screen" className={splashHidden ? 'hidden' : undefined}>
-        <div className="logo-anim">Smart Tracker</div>
+        <div className="logo-anim">RupeeRise</div>
       </div>
 
       <div
@@ -51,7 +51,7 @@ export default function Index() {
           padding: '40px 20px',
           background: 'var(--bg-main)',
           backgroundImage:
-            'radial-gradient(at 15% 15%, rgba(71, 127, 224, 0.08) 0px, transparent 50%), radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.06) 0px, transparent 50%)'
+            'radial-gradient(at 15% 15%, rgba(53, 94, 59, 0.08) 0px, transparent 50%), radial-gradient(at 85% 85%, rgba(61, 139, 80, 0.06) 0px, transparent 50%)'
         }}
       >
         <div
@@ -71,7 +71,7 @@ export default function Index() {
               height: 90,
               borderRadius: 24,
               overflow: 'hidden',
-              boxShadow: '0 12px 32px rgba(16, 185, 129, 0.22), 0 4px 12px rgba(0,0,0,0.08)',
+              boxShadow: '0 12px 32px rgba(53, 94, 59, 0.18), 0 4px 12px rgba(0,0,0,0.06)',
               margin: '0 auto 18px auto',
               background: '#ffffff',
               padding: 6,
@@ -94,8 +94,8 @@ export default function Index() {
               gap: 6,
               padding: '6px 14px',
               borderRadius: 999,
-              background: 'rgba(16, 185, 129, 0.1)',
-              color: 'var(--success-color)',
+              background: 'var(--primary-light)',
+              color: 'var(--primary-color)',
               fontSize: '0.8rem',
               fontWeight: 600,
               marginBottom: 16
@@ -110,12 +110,12 @@ export default function Index() {
               fontSize: 'clamp(2rem, 5vw, 2.75rem)',
               fontWeight: 800,
               letterSpacing: '-0.03em',
-              color: 'var(--text-color)',
+              color: 'var(--color-forest)',
               marginBottom: 16,
               lineHeight: 1.2
             }}
           >
-            Master Your Money with <span style={{ color: 'var(--primary-color)' }}>Rupee</span><span style={{ color: 'var(--success-color)' }}>Rise</span>
+            Master Your Money with <span style={{ color: 'var(--primary-color)' }}>Rupee</span><span style={{ color: 'var(--color-accent)' }}>Rise</span>
           </h1>
 
           <p

@@ -9,7 +9,7 @@
         #qrCanvas {
             margin: 20px 0;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(53, 94, 59, 0.2);
             display: none;
         }
         .form-row {

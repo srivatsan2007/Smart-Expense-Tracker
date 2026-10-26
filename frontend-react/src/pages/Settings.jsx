@@ -266,7 +266,7 @@ export default function Settings() {
                 width: 42,
                 height: 42,
                 borderRadius: 12,
-                background: 'rgba(71, 127, 224, 0.12)',
+                background: 'var(--primary-light)',
                 color: 'var(--primary-color)',
                 display: 'flex',
                 alignItems: 'center',

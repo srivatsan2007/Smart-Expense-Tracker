@@ -57,7 +57,7 @@ export default function Login() {
               margin: '0 auto 14px auto',
               background: '#ffffff',
               padding: 4,
-              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25)',
+              boxShadow: '0 8px 24px rgba(53, 94, 59, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -69,8 +69,8 @@ export default function Login() {
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           </div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0 }}>
-            Rupee<span style={{ color: 'var(--success-color)' }}>Rise</span>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, color: 'var(--color-forest)' }}>
+            Rupee<span style={{ color: 'var(--color-primary)' }}>Rise</span>
           </h2>
           <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Track Smarter. Save Better. Rise Higher.

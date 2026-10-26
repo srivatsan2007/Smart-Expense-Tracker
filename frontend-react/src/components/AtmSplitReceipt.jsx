@@ -198,14 +198,14 @@ function drawSingleSlip({ total, items, memberName, memberIndex, totalMembers, s
   const boxH = 74;
   x.save();
   rr(x, xl, y, xr - xl, boxH, 10);
-  x.fillStyle = "#eef3ff"; x.fill();
-  x.setLineDash([4, 3]); x.strokeStyle = "#2563eb"; x.lineWidth = 1.5; x.stroke();
+  x.fillStyle = "#EDF5E5"; x.fill();
+  x.setLineDash([4, 3]); x.strokeStyle = "#355E3B"; x.lineWidth = 1.5; x.stroke();
   x.restore();
 
-  txt("MEMBER SHARE", xl + 12, y + 22, `bold 11px ${MONO}`, "#64748b", "left");
-  txt(`Split ${memberIndex + 1} of ${totalMembers}`, xr - 12, y + 22, `11px ${MONO}`, "#3b82f6", "right");
-  txt(memberName, xl + 12, y + 52, `bold 18px ${MONO}`, "#1e3a8a", "left");
-  txt(fmt(shareAmt), xr - 12, y + 52, `bold 22px ${MONO}`, "#1d4ed8", "right");
+  txt("MEMBER SHARE", xl + 12, y + 22, `bold 11px ${MONO}`, "#647067", "left");
+  txt(`Split ${memberIndex + 1} of ${totalMembers}`, xr - 12, y + 22, `11px ${MONO}`, "#355E3B", "right");
+  txt(memberName, xl + 12, y + 52, `bold 18px ${MONO}`, "#1F3328", "left");
+  txt(fmt(shareAmt), xr - 12, y + 52, `bold 22px ${MONO}`, "#355E3B", "right");
 
   y += boxH + 16;
   dash(y);
@@ -233,7 +233,7 @@ function drawSingleSlip({ total, items, memberName, memberIndex, totalMembers, s
   txt("Google Pay • PhonePe • Paytm • BHIM", cx, y, `11px ${MONO}`, "#64748b");
   if (upiId && upiId.trim()) {
     y += 16;
-    txt(`UPI ID: ${upiId.trim()}`, cx, y, `bold 10px ${MONO}`, "#2563eb");
+    txt(`UPI ID: ${upiId.trim()}`, cx, y, `bold 10px ${MONO}`, "#355E3B");
   }
 
   y += 24;
@@ -667,8 +667,8 @@ export default function AtmSplitReceipt() {
 
 const CSS = `
 .atm-app {
-  --text: #1b2540;
-  --btn: #2563eb;
+  --text: #1F3328;
+  --btn: #355E3B;
   --btntext: #fff;
   color: var(--text);
   display: flex;
@@ -681,8 +681,8 @@ const CSS = `
 }
 @media (prefers-color-scheme: dark) {
   .atm-app {
-    --text: #dbe4ff;
-    --btn: #3b82f6;
+    --text: #F3F8F3;
+    --btn: #80A66A;
   }
 }
 
@@ -735,7 +735,7 @@ const CSS = `
   right: 0;
   height: 48px;
   border-radius: 24px 24px 0 0;
-  background: linear-gradient(180deg, #477fe0, #2f69cc);
+  background: linear-gradient(180deg, #355E3B, #1F3328);
 }
 .atm-slot {
   position: absolute;
@@ -799,8 +799,8 @@ const CSS = `
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #2563eb;
-  box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px #2563eb;
+  background: #355E3B;
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px #355E3B;
 }
 .atm-banner {
   height: 32px;
@@ -996,8 +996,8 @@ const CSS = `
   border-top: 1px dotted #e2e8f0;
 }
 .atm-slip-sharebox {
-  background: #eef3ff;
-  border: 1px dashed #2563eb;
+  background: #EDF5E5;
+  border: 1px dashed #355E3B;
   border-radius: 6px;
   padding: 4px 6px;
   margin-bottom: 4px;
@@ -1110,7 +1110,7 @@ const CSS = `
 }
 .atm-form input:focus, .atm-form select:focus {
   outline: none;
-  border-color: #477fe0;
+  border-color: #355E3B;
   background: #fff;
 }
 .atm-members {

@@ -21,10 +21,10 @@ export default function StatCard({
 
   const defaultColorMap = {
     primary: { color: 'var(--primary-color)', bg: 'var(--primary-light)' },
-    success: { color: 'var(--success-color)', bg: 'rgba(16, 185, 129, 0.12)' },
-    danger: { color: 'var(--danger-color)', bg: 'rgba(239, 68, 68, 0.12)' },
-    warning: { color: '#B45309', bg: 'rgba(245, 158, 11, 0.12)' },
-    neutral: { color: 'var(--text-secondary)', bg: 'rgba(100, 116, 139, 0.1)' },
+    success: { color: 'var(--success-color)', bg: 'var(--success-light)' },
+    danger: { color: 'var(--danger-color)', bg: 'var(--danger-light)' },
+    warning: { color: 'var(--warning-color)', bg: 'var(--warning-light)' },
+    neutral: { color: 'var(--text-secondary)', bg: 'rgba(100, 112, 103, 0.1)' },
     default: { color: 'var(--primary-color)', bg: 'var(--primary-light)' },
   };
 

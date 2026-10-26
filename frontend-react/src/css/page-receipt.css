@@ -12,13 +12,12 @@
         .receipt-container {
             width: 100%;
             max-width: 800px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
             padding: 30px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: var(--card-shadow);
         }
         .loading-state {
             display: flex;

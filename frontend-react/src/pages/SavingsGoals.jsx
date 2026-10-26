@@ -338,7 +338,7 @@ export default function SavingsGoals() {
               padding: '10px 20px',
               fontWeight: 600,
               fontSize: '0.92rem',
-              boxShadow: '0 4px 14px rgba(71, 127, 224, 0.35)',
+              boxShadow: '0 4px 14px rgba(53, 94, 59, 0.35)',
               gap: 8
             }}
           >
@@ -495,10 +495,10 @@ export default function SavingsGoals() {
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     position: 'relative',
-                    borderColor: isCompleted ? 'rgba(16, 185, 129, 0.45)' : 'var(--card-border)',
+                    borderColor: isCompleted ? 'rgba(61, 139, 80, 0.45)' : 'var(--card-border)',
                     boxShadow: isCompleted
-                      ? '0 4px 16px rgba(16, 185, 129, 0.08)'
-                      : '0 4px 16px rgba(71, 127, 224, 0.06)',
+                      ? '0 4px 16px rgba(61, 139, 80, 0.08)'
+                      : '0 4px 16px rgba(53, 94, 59, 0.06)',
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                     overflow: 'hidden'
                   }}
@@ -513,7 +513,7 @@ export default function SavingsGoals() {
                       height: 4,
                       background: isCompleted
                         ? 'var(--success-color)'
-                        : 'linear-gradient(90deg, #477FE0, #60a5fa)'
+                        : 'linear-gradient(90deg, var(--color-primary), var(--color-accent))'
                     }}
                   />
 
@@ -535,8 +535,8 @@ export default function SavingsGoals() {
                             height: 44,
                             borderRadius: 12,
                             background: isCompleted
-                              ? 'rgba(16, 185, 129, 0.12)'
-                              : 'rgba(71, 127, 224, 0.12)',
+                              ? 'var(--success-light)'
+                              : 'var(--primary-light)',
                             color: isCompleted ? 'var(--success-color)' : 'var(--primary-color)',
                             display: 'flex',
                             alignItems: 'center',
@@ -701,7 +701,7 @@ export default function SavingsGoals() {
                         style={{
                           height: 8,
                           borderRadius: 999,
-                          background: 'var(--border-color)',
+                          background: 'var(--color-accent, #DDF2C1)',
                           overflow: 'hidden'
                         }}
                       >
@@ -711,7 +711,7 @@ export default function SavingsGoals() {
                             width: `${percentage}%`,
                             background: isCompleted
                               ? 'var(--success-color)'
-                              : 'linear-gradient(90deg, #477FE0, #60a5fa)',
+                              : 'var(--primary-color)',
                             borderRadius: 999,
                             transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                           }}

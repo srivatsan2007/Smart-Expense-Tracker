@@ -70,7 +70,7 @@ export default class ErrorBoundary extends React.Component {
                 style={{
                   padding: '10px 20px',
                   borderRadius: 10,
-                  background: '#477FE0',
+                  background: '#355E3B',
                   color: '#ffffff',
                   fontWeight: 600,
                   fontSize: '0.9rem',
@@ -85,8 +85,8 @@ export default class ErrorBoundary extends React.Component {
                 style={{
                   padding: '10px 20px',
                   borderRadius: 10,
-                  background: '#F1F5F9',
-                  color: '#334155',
+                  background: '#EDF5E5',
+                  color: '#1F3328',
                   fontWeight: 600,
                   fontSize: '0.9rem',
                   textDecoration: 'none',

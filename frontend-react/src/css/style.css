@@ -1,38 +1,58 @@
 :root {
-  /* Colors - Light Mode (Fintech SaaS) */
-  --primary-color: #477FE0;
-  --primary-hover: #3868be;
-  --primary-light: rgba(71, 127, 224, 0.08);
-  --primary-border: rgba(71, 127, 224, 0.2);
-  --primary-ring: rgba(71, 127, 224, 0.25);
+  /* RupeeRise Brand Design Tokens */
+  --color-primary: #355E3B;
+  --color-primary-hover: #294B30;
+  --color-accent: #DDF2C1;
+  --color-forest: #1F3328;
+  --color-background: #F6FAF2;
+  --color-surface: #FFFFFF;
+  --color-surface-light: #EDF5E5;
+  --color-text: #1F3328;
+  --color-text-muted: #647067;
+  --color-border: #E0E8DC;
+  --color-success: #3D8B50;
+  --color-warning: #B7791F;
+  --color-danger: #C24141;
 
-  --bg-color: #F4F7FB;
+  /* Aliased Core Tokens */
+  --primary-color: #355E3B;
+  --primary-hover: #294B30;
+  --primary-light: #EDF5E5;
+  --primary-border: rgba(53, 94, 59, 0.2);
+  --primary-ring: rgba(53, 94, 59, 0.25);
+  --secondary-color: #80A66A;
+
+  --bg-color: #F6FAF2;
+  --bg-main: #F6FAF2;
   --card-bg: #FFFFFF;
-  --card-border: #E2E8F0;
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --card-border: #E0E8DC;
+  --card-shadow: 0 1px 3px 0 rgba(31, 51, 40, 0.05), 0 1px 2px -1px rgba(31, 51, 40, 0.05);
+  --card-shadow-hover: 0 4px 12px -2px rgba(31, 51, 40, 0.08), 0 2px 4px -2px rgba(31, 51, 40, 0.05);
 
-  --text-color: #1E293B;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-color: #1F3328;
+  --text-secondary: #647067;
+  --text-muted: #829285;
 
-  --success-color: #10B981;
-  --success-light: #ECFDF5;
-  --success-border: rgba(16, 185, 129, 0.3);
+  --success-color: #3D8B50;
+  --success-light: #EDF7F0;
+  --success-border: rgba(61, 139, 80, 0.25);
 
-  --danger-color: #EF4444;
-  --danger-light: #FEF2F2;
-  --danger-border: rgba(239, 68, 68, 0.3);
+  --danger-color: #C24141;
+  --danger-light: #FDF2F2;
+  --danger-border: rgba(194, 65, 65, 0.25);
 
-  --warning-color: #F59E0B;
-  --warning-light: #FFFBEB;
-  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning-color: #B7791F;
+  --warning-light: #FEF8ED;
+  --warning-border: rgba(183, 121, 31, 0.25);
 
-  --sidebar-bg: #FFFFFF;
-  --sidebar-border: #E2E8F0;
-  --sidebar-hover: #F8FAFC;
+  --sidebar-bg: #1F3328;
+  --sidebar-border: #2A4335;
+  --sidebar-hover: rgba(221, 242, 193, 0.08);
+  --sidebar-text: #E3EDE3;
+  --sidebar-text-muted: #9BB0A1;
+
   --input-bg: #FFFFFF;
-  --input-border: #CBD5E1;
+  --input-border: #E0E8DC;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -40,48 +60,64 @@
   --radius-full: 9999px;
 
   --card-radius: 14px;
-  --bg-main: var(--bg-color);
-  --border-color: var(--card-border);
+  --border-color: #E0E8DC;
 
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="dark"] {
-  /* Colors - Dark Mode (Deep Slate Fintech) */
-  --primary-color: #5B91EB;
-  --primary-hover: #477FE0;
-  --primary-light: rgba(91, 145, 235, 0.12);
-  --primary-border: rgba(91, 145, 235, 0.25);
-  --primary-ring: rgba(91, 145, 235, 0.3);
+  /* Colors - Dark Mode (Deep Forest Dark) */
+  --color-primary: #80A66A;
+  --color-primary-hover: #9AC083;
+  --color-accent: #DDF2C1;
+  --color-forest: #0D1611;
+  --color-background: #0E1712;
+  --color-surface: #14221B;
+  --color-surface-light: #1A2D23;
+  --color-text: #F3F8F3;
+  --color-text-muted: #A1B3A6;
+  --color-border: #26382D;
 
-  --bg-color: #0B1120;
-  --card-bg: #151F32;
-  --card-border: #24324D;
-  --card-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.3);
-  --card-shadow-hover: 0 8px 16px -2px rgba(0, 0, 0, 0.4);
+  --primary-color: #80A66A;
+  --primary-hover: #9AC083;
+  --primary-light: rgba(128, 166, 106, 0.15);
+  --primary-border: rgba(128, 166, 106, 0.3);
+  --primary-ring: rgba(128, 166, 106, 0.35);
+  --secondary-color: #DDF2C1;
 
-  --text-color: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --bg-color: #0E1712;
+  --bg-main: #0E1712;
+  --card-bg: #14221B;
+  --card-border: #26382D;
+  --card-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 8px 20px -2px rgba(0, 0, 0, 0.5);
 
-  --success-color: #10B981;
-  --success-light: rgba(16, 185, 129, 0.12);
-  --success-border: rgba(16, 185, 129, 0.3);
+  --text-color: #F3F8F3;
+  --text-secondary: #A1B3A6;
+  --text-muted: #738779;
 
-  --danger-color: #EF4444;
-  --danger-light: rgba(239, 68, 68, 0.12);
-  --danger-border: rgba(239, 68, 68, 0.3);
+  --success-color: #4CAF50;
+  --success-light: rgba(76, 175, 80, 0.15);
+  --success-border: rgba(76, 175, 80, 0.3);
 
-  --warning-color: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.12);
-  --warning-border: rgba(245, 158, 11, 0.3);
+  --danger-color: #E55353;
+  --danger-light: rgba(229, 83, 83, 0.15);
+  --danger-border: rgba(229, 83, 83, 0.3);
 
-  --sidebar-bg: #111A2C;
-  --sidebar-border: #24324D;
-  --sidebar-hover: rgba(255, 255, 255, 0.04);
-  --input-bg: #0F172A;
-  --input-border: #334155;
+  --warning-color: #D9822B;
+  --warning-light: rgba(217, 130, 43, 0.15);
+  --warning-border: rgba(217, 130, 43, 0.3);
+
+  --sidebar-bg: #0B130E;
+  --sidebar-border: #1F3025;
+  --sidebar-hover: rgba(221, 242, 193, 0.06);
+  --sidebar-text: #E3EDE3;
+  --sidebar-text-muted: #8EA092;
+
+  --input-bg: #101B15;
+  --input-border: #283C30;
+  --border-color: #26382D;
 }
 
 * {
@@ -213,12 +249,12 @@ p { font-size: 14px; color: var(--text-secondary); }
 .btn-primary {
   background: var(--primary-color);
   color: #FFFFFF;
-  box-shadow: 0 1px 2px 0 rgba(71, 127, 224, 0.25);
+  box-shadow: 0 1px 3px 0 rgba(53, 94, 59, 0.25);
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 4px 12px 0 rgba(71, 127, 224, 0.35);
+  box-shadow: 0 4px 14px 0 rgba(53, 94, 59, 0.35);
 }
 
 .btn-secondary {
@@ -228,8 +264,9 @@ p { font-size: 14px; color: var(--text-secondary); }
 }
 
 .btn-secondary:hover {
-  background: var(--sidebar-hover);
-  border-color: var(--text-muted);
+  background: var(--primary-light);
+  border-color: var(--primary-border);
+  color: var(--primary-color);
 }
 
 .btn-success {
@@ -328,13 +365,13 @@ table {
 }
 
 thead th {
-  background: var(--sidebar-hover);
+  background: var(--color-surface-light);
   padding: 13px 18px;
   font-size: 0.775rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-secondary);
+  color: var(--color-forest);
   border-bottom: 1px solid var(--card-border);
 }
 
@@ -355,7 +392,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: var(--sidebar-hover);
+  background-color: rgba(221, 242, 193, 0.14);
 }
 
 /* Sidebar & Layout */
@@ -386,6 +423,7 @@ tbody tr:hover {
   transition: margin 0.25s ease;
   min-width: 0;
   max-width: 100%;
+  background: var(--bg-color);
 }
 
 .sidebar-logo {
@@ -393,7 +431,7 @@ tbody tr:hover {
   align-items: center;
   gap: 12px;
   padding: 8px 12px 24px 12px;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--sidebar-border);
   text-decoration: none;
 }
 
@@ -407,8 +445,12 @@ tbody tr:hover {
 .sidebar-logo span {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: #FFFFFF;
   letter-spacing: -0.02em;
+}
+
+.sidebar-logo span span {
+  color: var(--color-accent);
 }
 
 .nav-links {
@@ -424,7 +466,7 @@ tbody tr:hover {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  color: var(--text-secondary);
+  color: var(--sidebar-text-muted);
   text-decoration: none;
   border-radius: var(--radius-md);
   font-size: 0.9rem;
@@ -434,22 +476,23 @@ tbody tr:hover {
 
 .nav-links a:hover {
   background: var(--sidebar-hover);
-  color: var(--text-color);
+  color: #FFFFFF;
 }
 
 .nav-links a.active {
-  background: var(--primary-light);
-  color: var(--primary-color);
+  background: var(--primary-color);
+  color: #FFFFFF;
   font-weight: 600;
+  box-shadow: inset 3.5px 0 0 var(--color-accent);
 }
 
 /* User Card in Sidebar */
 .sidebar-user {
   margin-top: auto;
   padding: 14px;
-  background: var(--sidebar-hover);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--sidebar-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -464,7 +507,7 @@ tbody tr:hover {
 .sidebar-user-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--sidebar-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -472,7 +515,7 @@ tbody tr:hover {
 
 .sidebar-user-role {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--sidebar-text-muted);
   text-transform: capitalize;
 }
 
@@ -485,14 +528,16 @@ tbody tr:hover {
   padding: 10px 14px;
   border-radius: var(--radius-md);
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--sidebar-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--sidebar-border);
   transition: var(--transition);
   margin-top: 10px;
 }
 
 .theme-switch:hover {
   background: var(--sidebar-hover);
-  color: var(--text-color);
+  color: #FFFFFF;
 }
 
 /* Page Header */

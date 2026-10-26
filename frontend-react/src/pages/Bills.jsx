@@ -229,7 +229,7 @@ export default function Bills() {
             title="Total Pending Bills"
             value={formatINR(stats.totalPending)}
             icon={CalendarCheck}
-            iconColor="#477FE0"
+            iconColor="var(--primary-color)"
             iconBg="var(--primary-light)"
             badgeText={`${bills.filter((b) => b.status !== 'paid').length} Unpaid`}
             badgeType="primary"
