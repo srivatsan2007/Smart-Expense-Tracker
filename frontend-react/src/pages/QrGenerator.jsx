@@ -4,6 +4,8 @@ import firebase from 'firebase/compat/app';
 import QRCode from 'qrcode';
 import Layout from '../components/Layout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
+import Modal from '../components/Modal.jsx';
+import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
 import { notify } from '../components/Toast.jsx';
 import {
   QrCode,
@@ -14,7 +16,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   IndianRupee,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  CreditCard
 } from '../components/Icons.jsx';
 
 const CATEGORIES = [
@@ -36,6 +39,7 @@ export default function QrGenerator() {
   const [generating, setGenerating] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [showAtmModal, setShowAtmModal] = useState(false);
 
   const update = (id, key, value) =>
     setItems(items.map((it) => (it.id === id ? { ...it, [key]: value } : it)));
@@ -149,10 +153,25 @@ export default function QrGenerator() {
         title="Generate Expense QR Receipt"
         subtitle="Itemize shared expenses, generate live digital proofs, and share instantly"
         action={
-          <Link to="/reports" className="btn btn-secondary">
-            <ArrowLeft size={16} />
-            <span>Back to Reports</span>
-          </Link>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setShowAtmModal(true)}
+              style={{
+                background: 'linear-gradient(135deg, #1b2540 0%, #2a1f8f 60%, #5b4be0 100%)',
+                borderColor: '#2a1f8f',
+                gap: 8
+              }}
+            >
+              <CreditCard size={18} />
+              <span>ATM Split Machine</span>
+            </button>
+            <Link to="/reports" className="btn btn-secondary">
+              <ArrowLeft size={16} />
+              <span>Back to Reports</span>
+            </Link>
+          </div>
         }
       />
 
@@ -366,6 +385,17 @@ export default function QrGenerator() {
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={showAtmModal}
+        onClose={() => setShowAtmModal(false)}
+        title="RupeeRise ATM Card & Split Terminal"
+        maxWidth={460}
+      >
+        <div style={{ maxHeight: '82vh', overflowY: 'auto', padding: '0 4px' }}>
+          <AtmSplitReceipt />
+        </div>
+      </Modal>
     </Layout>
   );
 }

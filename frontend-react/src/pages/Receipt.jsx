@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import firebase from 'firebase/compat/app';
 import { jsPDF } from 'jspdf';
-import { Download, AlertCircle, ArrowLeft, Shield, CheckCircle2 } from '../components/Icons.jsx';
+import { Download, AlertCircle, ArrowLeft, Shield, CheckCircle2, CreditCard } from '../components/Icons.jsx';
+import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
 import '../css/style.css';
 
 // Builds the receipt PDF on the fly from the Firestore document.
@@ -69,6 +70,7 @@ export default function Receipt() {
   const [status, setStatus] = useState('loading'); // loading | error | ready
   const [message, setMessage] = useState('Receipt not found or you do not have permission to view it.');
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [viewMode, setViewMode] = useState('pdf'); // 'pdf' | 'atm'
 
   useEffect(() => {
     document.title = 'Receipt - RupeeRise';
@@ -162,15 +164,26 @@ export default function Receipt() {
           </div>
 
           {status === 'ready' && (
-            <button
-              type="button"
-              onClick={downloadPDF}
-              className="btn btn-primary"
-              style={{ gap: 8 }}
-            >
-              <Download size={18} />
-              <span>Download PDF</span>
-            </button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode(viewMode === 'pdf' ? 'atm' : 'pdf')}
+                className="btn btn-secondary"
+                style={{ gap: 8, display: 'inline-flex', alignItems: 'center' }}
+              >
+                <CreditCard size={18} />
+                <span>{viewMode === 'pdf' ? 'ATM Split Machine View' : 'PDF Document View'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={downloadPDF}
+                className="btn btn-primary"
+                style={{ gap: 8 }}
+              >
+                <Download size={18} />
+                <span>Download PDF</span>
+              </button>
+            </div>
           )}
         </div>
 
@@ -212,26 +225,41 @@ export default function Receipt() {
         )}
 
         {status === 'ready' && (
-          <div
-            className="glass-card"
-            style={{
-              padding: 0,
-              overflow: 'hidden',
-              borderRadius: 16,
-              boxShadow: '0 12px 36px var(--card-shadow)'
-            }}
-          >
-            <iframe
-              src={pdfUrl || undefined}
-              title="Receipt PDF"
+          viewMode === 'atm' ? (
+            <div
+              className="glass-card"
               style={{
-                width: '100%',
-                height: 650,
-                border: 'none',
-                display: 'block'
+                padding: '28px 16px',
+                display: 'flex',
+                justifyContent: 'center',
+                borderRadius: 16,
+                boxShadow: '0 12px 36px var(--card-shadow)'
               }}
-            />
-          </div>
+            >
+              <AtmSplitReceipt />
+            </div>
+          ) : (
+            <div
+              className="glass-card"
+              style={{
+                padding: 0,
+                overflow: 'hidden',
+                borderRadius: 16,
+                boxShadow: '0 12px 36px var(--card-shadow)'
+              }}
+            >
+              <iframe
+                src={pdfUrl || undefined}
+                title="Receipt PDF"
+                style={{
+                  width: '100%',
+                  height: 650,
+                  border: 'none',
+                  display: 'block'
+                }}
+              />
+            </div>
+          )
         )}
       </div>
     </div>

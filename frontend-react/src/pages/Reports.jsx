@@ -10,6 +10,7 @@ import { notify } from '../components/Toast.jsx';
 import { formatINR, formatDate } from '../utils/formatters.js';
 import { downloadReport } from '../utils/premiumPdf.js';
 import { getAuthHeaders } from '../hooks/useAuth.js';
+import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
 import {
   FileText,
   FileSpreadsheet,
@@ -31,7 +32,8 @@ import {
   Trash2,
   Plus,
   Clock,
-  Filter
+  Filter,
+  CreditCard
 } from '../components/Icons.jsx';
 
 const CATEGORIES = [
@@ -142,6 +144,7 @@ export default function Reports() {
   const [showScannerModal, setShowScannerModal] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [scannedUrlResult, setScannedUrlResult] = useState(null);
+  const [showAtmModal, setShowAtmModal] = useState(false);
 
   // Load live application data for report preview calculations
   const loadFinancialData = async () => {
@@ -1131,14 +1134,31 @@ export default function Reports() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button
               type="button"
-              onClick={() => setShowQrModal(true)}
+              onClick={() => setShowAtmModal(true)}
               className="btn btn-primary"
               style={{
                 width: '100%',
                 justifyContent: 'center',
                 gap: 8,
-                background: '#8e44ad',
-                borderColor: '#8e44ad',
+                background: 'linear-gradient(135deg, #1b2540 0%, #2a1f8f 60%, #5b4be0 100%)',
+                borderColor: '#2a1f8f',
+                padding: '12px 16px',
+                fontWeight: 600,
+                boxShadow: '0 4px 14px rgba(42, 31, 143, 0.35)'
+              }}
+            >
+              <CreditCard size={18} />
+              <span>ATM Card &amp; Split Terminal</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowQrModal(true)}
+              className="btn btn-secondary"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                gap: 8,
                 padding: '11px 16px'
               }}
             >
@@ -1421,6 +1441,20 @@ export default function Reports() {
           >
             Close Scanner
           </button>
+        </div>
+      </Modal>
+
+      {/* =========================================================================
+          MODAL 3: ATM CARD & SPLIT TERMINAL
+      ========================================================================= */}
+      <Modal
+        isOpen={showAtmModal}
+        onClose={() => setShowAtmModal(false)}
+        title="RupeeRise ATM Card & Split Terminal"
+        maxWidth={460}
+      >
+        <div style={{ maxHeight: '82vh', overflowY: 'auto', padding: '0 4px' }}>
+          <AtmSplitReceipt />
         </div>
       </Modal>
     </Layout>
