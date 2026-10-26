@@ -1,0 +1,37 @@
+{
+  "id": "/",
+  "name": "RupeeRise - Personal Finance",
+  "short_name": "RupeeRise",
+  "description": "RupeeRise: Track Smarter. Save Better. Rise Higher. Modern personal finance dashboard.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F7FB",
+  "theme_color": "#477FE0",
+  "icons": [
+    {
+      "src": "/images/rupeerise-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/rupeerise-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/images/rupeerise-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

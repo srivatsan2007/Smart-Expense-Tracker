@@ -29,10 +29,10 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/bills', require('./routes/billRoutes'));
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../frontend-react/dist')));
 
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend-react/dist/index.html'));
 });
 
 const PORT = process.env.PORT || 5000;

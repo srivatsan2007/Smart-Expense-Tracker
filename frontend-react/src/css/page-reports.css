@@ -1,0 +1,17 @@
+
+        .report-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .report-buttons .btn {
+            flex: 1;
+        }
+        
+        #ocr-preview {
+            max-width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+    

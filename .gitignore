@@ -1,7 +1,31 @@
+# Dependencies
 node_modules/
+frontend-react/node_modules/
+
+# Production build output
+dist/
+frontend-react/dist/
+
+# Environment files
 .env
-.DS_Store
-npm-debug.log
-yarn-error.log
+.env.local
+.env.*.local
+
+# Secrets and keys
+firebaseServiceAccountKey.json
+backend/firebaseServiceAccountKey.json
 firebase-key.json
 *.pem
+
+# Uploads and temporary files
+backend/uploads/
+uploads/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

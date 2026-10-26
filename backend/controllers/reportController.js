@@ -5,13 +5,22 @@ const path = require('path');
 const { admin } = require('../db');
 const { parse } = require('json2csv');
 
-// Helper to get expenses from Firestore
-const fetchUserExpenses = async (userId) => {
+// Helper to get expenses from Firestore with optional date range filter
+const fetchUserExpenses = async (userId, startDate, endDate) => {
   const db = admin.firestore();
   const snapshot = await db.collection('expenses')
     .where('user', '==', userId)
     .get();
   let expenses = snapshot.docs.map(doc => doc.data());
+  if (startDate) {
+    const s = new Date(startDate);
+    expenses = expenses.filter(e => new Date(e.date) >= s);
+  }
+  if (endDate) {
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    expenses = expenses.filter(e => new Date(e.date) <= end);
+  }
   expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
   return expenses;
 };
@@ -21,7 +30,7 @@ const fetchUserExpenses = async (userId) => {
 // @access  Private
 const generatePDF = async (req, res) => {
   try {
-    const expenses = await fetchUserExpenses(req.user.id);
+    const expenses = await fetchUserExpenses(req.user.id, req.query.startDate, req.query.endDate);
     const doc = new PDFDocument();
     
     res.setHeader('Content-Type', 'application/pdf');
@@ -55,7 +64,7 @@ const generatePDF = async (req, res) => {
 // @access  Private
 const generateExcel = async (req, res) => {
   try {
-    const expenses = await fetchUserExpenses(req.user.id);
+    const expenses = await fetchUserExpenses(req.user.id, req.query.startDate, req.query.endDate);
     
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Expenses');
@@ -93,7 +102,7 @@ const generateExcel = async (req, res) => {
 // @access  Private
 const generateCSV = async (req, res) => {
   try {
-    const expenses = await fetchUserExpenses(req.user.id);
+    const expenses = await fetchUserExpenses(req.user.id, req.query.startDate, req.query.endDate);
     
     if (!expenses || expenses.length === 0) {
        return res.status(404).json({ message: 'No expenses found to export.' });

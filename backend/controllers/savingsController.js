@@ -21,7 +21,7 @@ const getSavingsGoals = async (req, res) => {
 // @route   POST /api/savings
 // @access  Private
 const createSavingsGoal = async (req, res) => {
-  const { name, targetAmount, currentAmount, targetDate } = req.body;
+  const { name, targetAmount, currentAmount, targetDate, description } = req.body;
 
   try {
     const db = admin.firestore();
@@ -30,7 +30,8 @@ const createSavingsGoal = async (req, res) => {
       name,
       targetAmount: Number(targetAmount),
       currentAmount: currentAmount ? Number(currentAmount) : 0,
-      targetDate
+      targetDate: targetDate || null,
+      description: description || ''
     };
 
     const docRef = await db.collection('savingsGoals').add(goalData);
@@ -44,7 +45,7 @@ const createSavingsGoal = async (req, res) => {
 // @route   PUT /api/savings/:id
 // @access  Private
 const updateSavingsGoal = async (req, res) => {
-  const { name, targetAmount, currentAmount, targetDate } = req.body;
+  const { name, targetAmount, currentAmount, targetDate, description } = req.body;
 
   try {
     const db = admin.firestore();
@@ -58,9 +59,10 @@ const updateSavingsGoal = async (req, res) => {
 
       const updateData = {};
       if (name !== undefined) updateData.name = name;
-      if (targetAmount !== undefined) updateData.targetAmount = targetAmount;
-      if (currentAmount !== undefined) updateData.currentAmount = currentAmount;
+      if (targetAmount !== undefined) updateData.targetAmount = Number(targetAmount);
+      if (currentAmount !== undefined) updateData.currentAmount = Number(currentAmount);
       if (targetDate !== undefined) updateData.targetDate = targetDate;
+      if (description !== undefined) updateData.description = description;
 
       await goalRef.update(updateData);
       

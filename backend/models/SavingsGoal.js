@@ -20,6 +20,10 @@ const savingsGoalSchema = new mongoose.Schema({
   },
   targetDate: {
     type: Date
+  },
+  description: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 

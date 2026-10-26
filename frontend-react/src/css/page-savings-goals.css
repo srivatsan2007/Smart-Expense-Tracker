@@ -1,0 +1,18 @@
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+        }
+        .goal-card {
+            margin-bottom: 20px;
+        }
+    
