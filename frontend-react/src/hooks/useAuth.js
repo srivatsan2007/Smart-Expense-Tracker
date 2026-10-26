@@ -7,6 +7,30 @@ export const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 });
 
+export const getFreshToken = async () => {
+  try {
+    const user = firebase.auth().currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      if (token) {
+        localStorage.setItem('token', token);
+        return token;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not refresh auth token:', err);
+  }
+  return localStorage.getItem('token') || '';
+};
+
+export const getFreshAuthHeaders = async () => {
+  const token = await getFreshToken();
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 export function logoutUser(navigate) {
   firebase.auth().signOut().then(() => {
     localStorage.removeItem('token');
@@ -20,9 +44,17 @@ export function logoutUser(navigate) {
 export function useRequireAuth() {
   const navigate = useNavigate();
   useEffect(() => {
-    return firebase.auth().onAuthStateChanged((user) => {
-      if (!user) navigate('/login');
-      else user.getIdToken().then((t) => localStorage.setItem('token', t));
+    return firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        navigate('/login');
+      } else {
+        try {
+          const t = await user.getIdToken();
+          localStorage.setItem('token', t);
+        } catch (err) {
+          console.error('Failed to update ID token:', err);
+        }
+      }
     });
   }, [navigate]);
 }

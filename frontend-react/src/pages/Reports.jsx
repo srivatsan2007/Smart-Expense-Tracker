@@ -9,7 +9,7 @@ import Modal from '../components/Modal.jsx';
 import { notify } from '../components/Toast.jsx';
 import { formatINR, formatDate } from '../utils/formatters.js';
 import { downloadReport } from '../utils/premiumPdf.js';
-import { getAuthHeaders } from '../hooks/useAuth.js';
+import { getAuthHeaders, getFreshAuthHeaders } from '../hooks/useAuth.js';
 import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
 import {
   FileText,
@@ -150,16 +150,16 @@ export default function Reports() {
   const loadFinancialData = async () => {
     try {
       setDataLoading(true);
-      const headers = getAuthHeaders();
+      const headers = await getFreshAuthHeaders();
       const [expRes, salRes] = await Promise.all([
-        fetch('/api/expenses', { headers }),
-        fetch('/api/salaries', { headers })
+        fetch('/api/expenses', { headers }).catch(() => null),
+        fetch('/api/salaries', { headers }).catch(() => null)
       ]);
-      if (expRes.ok) {
+      if (expRes && expRes.ok) {
         const expData = await expRes.json();
         setAllExpenses(Array.isArray(expData) ? expData : []);
       }
-      if (salRes.ok) {
+      if (salRes && salRes.ok) {
         const salData = await salRes.json();
         setAllSalaries(Array.isArray(salData) ? salData : []);
       }
@@ -172,6 +172,12 @@ export default function Reports() {
 
   useEffect(() => {
     loadFinancialData();
+    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        loadFinancialData();
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // Compute active date range based on period selector
@@ -214,7 +220,7 @@ export default function Reports() {
         startDate: activeRange.startDate,
         endDate: activeRange.endDate,
         periodLabel: activeRange.label,
-        expenses: filteredExpenses
+        expenses: periodSummary.filteredExpenses
       });
       notify(`${type.toUpperCase()} report generated successfully!`, 'success');
     } catch (err) {

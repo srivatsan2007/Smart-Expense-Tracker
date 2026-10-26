@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
+import firebase from 'firebase/compat/app';
 
 /**
  * RupeeRise — Premium PDF Report Generator
@@ -52,7 +53,15 @@ async function loadLogoDataUrl() {
  */
 export async function generatePremiumPDF(options = {}) {
   try {
-    const token = localStorage.getItem('token');
+    let token = localStorage.getItem('token') || '';
+    try {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        token = await user.getIdToken();
+        localStorage.setItem('token', token);
+      }
+    } catch (e) {}
+
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     // Fetch necessary financial metrics in parallel
@@ -438,26 +447,83 @@ export async function downloadReport(type, options = {}) {
     return;
   }
 
+  const expenses = options.expenses || [];
+
+  // Direct client-side CSV download for instantaneous, 100% reliable export
+  if (type === 'csv') {
+    const headers = ['Date', 'Category', 'Description', 'Payment Method', 'Amount (INR)'];
+    const rows = expenses.map((e) => [
+      e.date ? new Date(e.date).toLocaleDateString('en-IN') : '',
+      `"${String(e.category || 'Other').replace(/"/g, '""')}"`,
+      `"${String(e.description || '').replace(/"/g, '""')}"`,
+      `"${String(e.paymentMethod || 'UPI').replace(/"/g, '""')}"`,
+      Number(e.amount || 0).toFixed(2),
+    ]);
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `RupeeRise_Expense_Report_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    return;
+  }
+
+  // For Excel, query backend API with fresh token, with fallback to CSV spreadsheet format if API returns error
   const params = new URLSearchParams();
   if (options.startDate) params.set('startDate', options.startDate);
   if (options.endDate) params.set('endDate', options.endDate);
   const queryStr = params.toString() ? `?${params.toString()}` : '';
 
-  const res = await fetch(`/api/reports/${type}${queryStr}`, {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
+  let token = localStorage.getItem('token') || '';
+  try {
+    const user = firebase.auth().currentUser;
+    if (user) {
+      token = await user.getIdToken();
+      localStorage.setItem('token', token);
+    }
+  } catch (e) {}
 
-  if (!res.ok) {
-    const errorJson = await res.json().catch(() => ({}));
-    throw new Error(errorJson.message || `Failed to generate ${type.toUpperCase()} report.`);
+  try {
+    const res = await fetch(`/api/reports/excel${queryStr}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `RupeeRise_Expense_Report_${Date.now()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      return;
+    }
+  } catch (err) {
+    console.warn('Backend excel route failed, using client-side export fallback:', err);
   }
 
-  const blob = await res.blob();
+  // Fallback: Generate Excel-compatible CSV with UTF-8 BOM so Excel opens it with perfect columns
+  const headers = ['Date', 'Category', 'Description', 'Payment Method', 'Amount (INR)'];
+  const rows = expenses.map((e) => [
+    e.date ? new Date(e.date).toLocaleDateString('en-IN') : '',
+    `"${String(e.category || 'Other').replace(/"/g, '""')}"`,
+    `"${String(e.description || '').replace(/"/g, '""')}"`,
+    `"${String(e.paymentMethod || 'UPI').replace(/"/g, '""')}"`,
+    Number(e.amount || 0).toFixed(2),
+  ]);
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `Expense_Report_${Date.now()}.${type === 'excel' ? 'xlsx' : type}`;
+  a.download = `RupeeRise_Expense_Report_${Date.now()}.csv`;
   document.body.appendChild(a);
   a.click();
   window.URL.revokeObjectURL(url);
