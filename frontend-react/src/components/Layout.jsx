@@ -11,7 +11,6 @@ import {
   Target,
   FileText,
   Settings as SettingsIcon,
-  Shield,
   LogOut,
   Moon,
   Sun,
@@ -34,7 +33,7 @@ const NAV_ITEMS = [
   { path: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-export default function Layout({ title, adminOnly = false, active, children }) {
+export default function Layout({ title, active, children }) {
   useRequireAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,35 +95,17 @@ export default function Layout({ title, adminOnly = false, active, children }) {
         </Link>
 
         <ul className="nav-links">
-          {adminOnly ? (
-            <li>
-              <Link to="/admin" className="active">
-                <Shield size={19} />
-                <span>Admin Panel</span>
-              </Link>
-            </li>
-          ) : (
-            NAV_ITEMS.map(({ path, label, icon: IconComponent }) => {
-              const isActive = currentPath === path;
-              return (
-                <li key={path}>
-                  <Link to={`/${path}`} className={isActive ? 'active' : ''}>
-                    <IconComponent size={19} />
-                    <span>{label}</span>
-                  </Link>
-                </li>
-              );
-            })
-          )}
-
-          {!adminOnly && user?.role === 'admin' && (
-            <li>
-              <Link to="/admin" className={currentPath === 'admin' ? 'active' : ''}>
-                <Shield size={19} />
-                <span>Admin</span>
-              </Link>
-            </li>
-          )}
+          {NAV_ITEMS.map(({ path, label, icon: IconComponent }) => {
+            const isActive = currentPath === path;
+            return (
+              <li key={path}>
+                <Link to={`/${path}`} className={isActive ? 'active' : ''}>
+                  <IconComponent size={19} />
+                  <span>{label}</span>
+                </Link>
+              </li>
+            );
+          })}
 
           <li>
             <a
@@ -162,7 +143,7 @@ export default function Layout({ title, adminOnly = false, active, children }) {
             </div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">{user.name || 'User'}</div>
-              <div className="sidebar-user-role">{user.role === 'admin' ? 'Administrator' : 'Standard User'}</div>
+              <div className="sidebar-user-role">{user.email || 'Personal Account'}</div>
             </div>
           </div>
         )}

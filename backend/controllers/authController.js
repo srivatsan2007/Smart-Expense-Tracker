@@ -4,11 +4,8 @@ const { admin } = require('../db');
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  let { name, email, mobileNumber, uid, role = 'user' } = req.body;
-  
-  if (role === 'admin' && !email.includes('@smarttracker.com')) {
-    role = 'user';
-  }
+  const { name, email, mobileNumber, uid } = req.body;
+  const role = 'user';
 
   // Note: With Firebase, the actual registration (password) happens on the frontend using Client SDK.
   // This endpoint is just to sync the user profile to Firestore after successful frontend registration.

@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-const Admin = lazy(() => import('./pages/Admin.jsx'));
 const Bills = lazy(() => import('./pages/Bills.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const Expenses = lazy(() => import('./pages/Expenses.jsx'));
@@ -50,7 +49,6 @@ export default function App() {
           <Route path="/savings-goals" element={<SavingsGoals />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/admin" element={<Admin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/qr-generator" element={<QrGenerator />} />
@@ -58,6 +56,8 @@ export default function App() {
           <Route path="/receipt" element={<Receipt />} />
 
           {/* Automatic Redirects from legacy .html URLs to modern clean SPA URLs */}
+          <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/admin.html" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard.html" element={<Navigate to="/dashboard" replace />} />
           <Route path="/expenses.html" element={<Navigate to="/expenses" replace />} />
           <Route path="/bills.html" element={<Navigate to="/bills" replace />} />
@@ -65,7 +65,6 @@ export default function App() {
           <Route path="/savings-goals.html" element={<Navigate to="/savings-goals" replace />} />
           <Route path="/reports.html" element={<Navigate to="/reports" replace />} />
           <Route path="/settings.html" element={<Navigate to="/settings" replace />} />
-          <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
           <Route path="/login.html" element={<Navigate to="/login" replace />} />
           <Route path="/register.html" element={<Navigate to="/register" replace />} />

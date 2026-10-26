@@ -35,12 +35,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const profile = await loginUser(form.loginId.trim(), form.password);
-      if (profile && profile.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      await loginUser(form.loginId.trim(), form.password);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed, please check your credentials.');
     } finally {

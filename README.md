@@ -18,7 +18,7 @@
 - **💳 Bill Tracking & Reminders**: Overdue alerts, upcoming payment countdowns, and quick "Mark as Paid" action.
 - **📄 Audit-Ready PDF & Excel Reports**: Cryptographically signed statements with QR verification and date range filtering.
 - **🔗 Encrypted QR Split Receipts**: Real-time digital receipts verified by cloud Firestore.
-- **🔒 Secure Authentication**: Robust JWT auth with Administrator controls and User profiles.
+- **🔒 Secure Authentication**: Robust Firebase Auth with JWT tokens and User profiles.
 
 ---
 

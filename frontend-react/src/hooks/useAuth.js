@@ -70,18 +70,14 @@ export async function loginUser(loginId, password) {
   return profile;
 }
 
-export async function registerUser(name, email, mobileNumber, password, role) {
-  if (role === 'admin' && !email.includes('@smarttracker.com')) {
-    alert('Notice: Only @smarttracker.com emails can be Admins. You will be registered as a standard User.');
-    role = 'user';
-  }
+export async function registerUser(name, email, mobileNumber, password) {
   const { user } = await firebase.auth().createUserWithEmailAndPassword(email, password);
   localStorage.setItem('token', await user.getIdToken());
   const config = await authConfig();
   const res = await fetch(`${AUTH_API}/register`, {
     method: 'POST',
     ...config,
-    body: JSON.stringify({ name, email, mobileNumber, uid: user.uid, role }),
+    body: JSON.stringify({ name, email, mobileNumber, uid: user.uid, role: 'user' }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message);

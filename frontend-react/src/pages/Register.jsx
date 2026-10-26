@@ -49,18 +49,13 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const data = await registerUser(
+      await registerUser(
         form.name.trim(),
         form.email.trim(),
         form.mobileNumber.trim(),
-        form.password,
-        form.role
+        form.password
       );
-      if (data && data.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed, please try again.');
     } finally {
@@ -179,20 +174,6 @@ export default function Register() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Account Role</label>
-            <select
-              className="form-control"
-              required
-              value={form.role}
-              onChange={set('role')}
-              style={{ cursor: 'pointer' }}
-            >
-              <option value="user">Standard User (Personal Expense Tracker)</option>
-              <option value="admin">Administrator (System Management)</option>
-            </select>
           </div>
 
           <button

@@ -25,7 +25,6 @@ app.use('/api/savings', require('./routes/savingsRoutes'));
 app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/ocr', require('./routes/ocrRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/bills', require('./routes/billRoutes'));
 
 // Serve frontend static files
