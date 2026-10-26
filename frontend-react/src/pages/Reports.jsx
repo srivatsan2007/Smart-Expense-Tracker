@@ -1153,21 +1153,6 @@ export default function Reports() {
 
             <button
               type="button"
-              onClick={() => setShowQrModal(true)}
-              className="btn btn-secondary"
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '11px 16px'
-              }}
-            >
-              <QrCode size={18} />
-              <span>Generate Expense QR Code</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => setShowScannerModal(true)}
               className="btn btn-secondary"
               style={{
