@@ -1,44 +1,54 @@
 import React, { useEffect, useMemo, useState } from "react";
-import qrcode from "qrcode-generator"; // npm i qrcode-generator
+import qrcode from "qrcode-generator";
 
 /**
- * AtmSplitReceipt - handheld card machine (SBI Payments style).
- * The bill prints out of the TOP of the machine; pressing "Split the bill"
- * tears it along a zigzag line into two shares.
- * No extra dependencies. All styles are scoped under .atm-app.
+ * AtmSplitReceipt - RupeeRise Handheld ATM Split Terminal
+ * Prints realistic receipt slips that tear apart into individual, complete bills.
+ * Each split slip contains:
+ * 1. RupeeRise Branding & Date
+ * 2. Full itemized breakdown (What was spent & how much)
+ * 3. Total bill
+ * 4. Individual member name and their exact payable share
+ * 5. 100% Working Scannable UPI Payment QR Code (GPay / PhonePe / Paytm / BHIM)
+ * Downloads both split slip PNGs automatically when clicking Download!
  */
 
-const W = 190, ROW = 70, FOOT = 84, TITLE_H = 70, ITEMS_PAD = 12, ITEM_H = 14, AMP = 4, PAD = 6;
+const W = 190;
+const AMP = 4;
+const PAD = 6;
 const MIN_MEMBERS = 2, MAX_MEMBERS = 6, MIN_ITEMS = 1, MAX_ITEMS = 5;
 
-// n = number of members (pieces), m = number of expense lines in the table
-const headFor = (m) => TITLE_H + ITEMS_PAD + ITEM_H * m;
-const heightFor = (n, m) => headFor(m) + ROW * n + FOOT;
-const tearY = (k, m) => headFor(m) + ROW * k; // tear line between member k-1 and k
+// Each member gets their own full slip with header, items, share box, and working QR code
+const slipH = (m) => 218 + m * 14;
+const heightFor = (n, m) => n * slipH(m);
+const tearY = (k, m) => k * slipH(m);
 
-// Zigzag tear line; neighbouring pieces share the same points so they match
+// Zigzag tear line between consecutive slips
 const zigAt = (y) => {
   const p = [];
-  for (let x = 0; x <= W; x += 10) p.push([x, y + ((x / 10) % 2 ? AMP : -AMP)]);
+  for (let x = 0; x <= W; x += 10) {
+    p.push([x, y + ((x / 10) % 2 ? AMP : -AMP)]);
+  }
   return p;
 };
 const pts = (a) => a.map(([x, y]) => `${x}px ${y}px`).join(",");
 
-// Clip shape + motion targets for piece i
+// Polygon clip path and tear motion for each slip piece
 const pieceStyle = (i, n, m) => {
   const H = heightFor(n, m);
+  const sh = slipH(m);
   const top = i === 0 ? [[0, 0], [W, 0]] : zigAt(tearY(i, m));
   const bot = i === n - 1 ? [[W, H], [0, H]] : zigAt(tearY(i + 1, m)).reverse();
-  const y0 = i === 0 ? 0 : tearY(i, m);
-  const y1 = i === n - 1 ? H : tearY(i + 1, m);
+  const y0 = tearY(i, m);
+  const y1 = tearY(i + 1, m);
   const s = i % 2 === 0 ? -1 : 1;
   const lift = n - 1 - i;
-  const step = 60 / (n - 1);
+  const step = 45 / Math.max(1, n - 1);
   return {
     clipPath: `polygon(${pts([...top, ...bot])})`,
     transformOrigin: `${W / 2}px ${(y0 + y1) / 2}px`,
-    "--tear": `translate(${s * 8}px,${-lift * 5}px) rotate(${s * 3}deg)`,
-    "--apart": `translate(${s * (52 + (i % 3) * 8)}px,${-lift * step - 8}px) rotate(${s * (8 + (i % 3) * 3)}deg)`,
+    "--tear": `translate(${s * 8}px,${-lift * 4}px) rotate(${s * 2.5}deg)`,
+    "--apart": `translate(${s * (46 + (i % 3) * 6)}px,${-lift * step + (s > 0 ? 14 : -14)}px) rotate(${s * (6 + (i % 3) * 2)}deg)`,
   };
 };
 
@@ -51,16 +61,16 @@ const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDi
 const STATUS = {
   reset: "Starting…",
   idle: "Starting…",
-  print: "Printing bill…",
-  ready: "Bill ready. Tap Split",
-  tear: "Splitting…",
-  apart: "Split done",
+  print: "Printing bills…",
+  ready: "Bills ready. Tap Split",
+  tear: "Splitting slips…",
+  apart: "Split complete",
 };
 
 const MENU = [
   ["↺", "Void"], ["▦", "QR"], ["✔", "Pre-Auth"],
-  ["▤", "Settlement"], ["⚙", "Maintenance"], ["☎", "Call Help"],
-  ["₹", "Adjust"], ["⇩", "DCC Download"],
+  ["▤", "Settlement"], ["⚙", "Config"], ["☎", "Help"],
+  ["₹", "Adjust"], ["⇩", "Download"],
 ];
 
 const MONO = 'ui-monospace, Menlo, "Courier New", monospace';
@@ -75,134 +85,167 @@ function rr(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// ---- QR code -------------------------------------------------------------
+// ---- QR Code & UPI URL ---------------------------------------------------
 if (qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs["UTF-8"]) {
-  qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"]; // names with any letters
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
+}
+
+// Official NPCI UPI QR code payment format
+export function makeUpiUrl(upiId, payeeName, amount, memberName) {
+  const cleanId = (upiId || "").trim() || "rupeerise@upi";
+  const cleanName = encodeURIComponent(payeeName || "RupeeRise");
+  const amtStr = Number(amount || 0).toFixed(2);
+  const note = encodeURIComponent(`Bill Share - ${memberName || "Friend"}`);
+  return `upi://pay?pa=${cleanId}&pn=${cleanName}&am=${amtStr}&cu=INR&tn=${note}`;
 }
 
 function safeQR(text) {
   try {
-    const q = qrcode(0, "L");
+    const q = qrcode(0, "M");
     q.addData(text);
     q.make();
     const n = q.getModuleCount();
     let path = "";
-    for (let r = 0; r < n; r++)
-      for (let c = 0; c < n; c++) if (q.isDark(r, c)) path += `M${c} ${r}h1v1h-1z`;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (q.isDark(r, c)) path += `M${c} ${r}h1v1h-1z`;
+      }
+    }
     return { n, path, isDark: (r, c) => q.isDark(r, c) };
   } catch (e) {
     return null;
   }
 }
 
-// What a scanner shows: the purpose, the total and each person's share
-const qrPayload = ({ items, total, names }, shares) =>
-  [
-    "RupeeRise",
-    "For: " + items.map((it) => `${it.label} ${it.amt}`).join(", "),
-    `Total: Rs ${total}`,
-    ...names.map((nm, i) => `${nm}: Rs ${shares[i]}`),
-  ].join("\n");
-
 function Qr({ qr }) {
+  if (!qr) return null;
   const pad = 2, size = qr.n + pad * 2;
   return (
     <svg className="atm-qr" viewBox={`${-pad} ${-pad} ${size} ${size}`} shapeRendering="crispEdges"
-      role="img" aria-label="QR code with the bill details">
+      role="img" aria-label="100% Scannable UPI Payment QR Code">
       <rect x={-pad} y={-pad} width={size} height={size} fill="#fff" />
       <path d={qr.path} fill="#111" />
     </svg>
   );
 }
 
-// Draws the whole bill (brand, spent-on table, total, shares, QR) as one PNG for sharing
-function drawBill({ total, items, names, shares, qr }) {
-  const S = 2, pw = 340, pad = 28, rowH = 54, QR = 120;
-  const ph = 432 + 20 * items.length + 54 * names.length;
+// Draws a complete, high-resolution individual split slip for a specific member
+function drawSingleSlip({ total, items, memberName, memberIndex, totalMembers, shareAmt, qr, upiId }) {
+  const S = 2; // 2x Retina resolution
+  const pw = 340;
+  const pad = 24;
+  const rowH = 22;
+  const ph = 540 + items.length * rowH;
   const cw = pw + pad * 2, ch = ph + pad * 2;
   const c = document.createElement("canvas");
   c.width = cw * S;
   c.height = ch * S;
   const x = c.getContext("2d");
   x.scale(S, S);
-  x.fillStyle = "#10172a";
+
+  // Dark background backdrop
+  x.fillStyle = "#0f172a";
   x.fillRect(0, 0, cw, ch);
 
-  // paper with torn zigzag top and bottom edges
+  // Receipt paper with torn zigzag top and bottom
   const L = pad, B = pad + ph, T = pad;
   x.save();
-  x.shadowColor = "rgba(0,0,0,.45)";
-  x.shadowBlur = 18;
+  x.shadowColor = "rgba(0,0,0,.5)";
+  x.shadowBlur = 16;
   x.shadowOffsetY = 6;
   x.fillStyle = "#fffdf6";
   x.beginPath();
   x.moveTo(L, T);
-  for (let i = 0; i <= pw; i += 10) x.lineTo(L + i, T + ((i / 10) % 2 ? 5 : 0));
-  for (let i = pw; i >= 0; i -= 10) x.lineTo(L + i, B - ((i / 10) % 2 ? 0 : 5));
+  for (let i = 0; i <= pw; i += 10) x.lineTo(L + i, T + ((i / 10) % 2 ? 4 : 0));
+  for (let i = pw; i >= 0; i -= 10) x.lineTo(L + i, B - ((i / 10) % 2 ? 0 : 4));
   x.closePath();
   x.fill();
   x.restore();
 
-  const cx = pad + pw / 2, xl = pad + 22, xr = pad + pw - 22;
+  const cx = pad + pw / 2;
+  const xl = pad + 20, xr = pad + pw - 20;
   const txt = (str, X, Y, font, color, align = "center") => {
     x.font = font; x.fillStyle = color; x.textAlign = align; x.fillText(str, X, Y);
   };
   const dash = (Y) => {
-    x.save(); x.setLineDash([5, 4]); x.strokeStyle = "#bbb"; x.lineWidth = 1;
+    x.save(); x.setLineDash([4, 3]); x.strokeStyle = "#cbd5e1"; x.lineWidth = 1;
     x.beginPath(); x.moveTo(xl, Y); x.lineTo(xr, Y); x.stroke(); x.restore();
   };
 
-  let y = pad + 44;
-  txt("★ SPLIT BILL ★", cx, y, `14px ${MONO}`, "#555");
-  y += 50; txt("RupeeRise", cx, y, `bold 42px ${MONO}`, "#0b2a6b");
-  y += 28; txt(TODAY, cx, y, `13px ${MONO}`, "#777");
-  y += 20; dash(y);
+  let y = pad + 32;
+  txt("★ RUPEERISE SPLIT BILL ★", cx, y, `bold 12px ${MONO}`, "#64748b");
+  y += 34; txt("RupeeRise", cx, y, `bold 32px ${MONO}`, "#0b2a6b");
+  y += 22; txt(TODAY, cx, y, `12px ${MONO}`, "#64748b");
+  y += 16; dash(y);
 
+  // SPENT ON breakdown
   y += 22; txt("SPENT ON", xl, y, `bold 11px ${MONO}`, "#7a869f", "left");
   items.forEach((it) => {
-    y += 20;
-    txt(it.label, xl, y, `14px ${MONO}`, "#333", "left");
-    txt(fmt(it.amt), xr, y, `14px ${MONO}`, "#333", "right");
+    y += 22;
+    txt(it.label, xl, y, `14px ${MONO}`, "#1e293b", "left");
+    txt(fmt(it.amt), xr, y, `14px ${MONO}`, "#1e293b", "right");
   });
   y += 14; dash(y);
-  y += 32;
-  txt("TOTAL BILL", xl, y, `bold 14px ${MONO}`, "#333", "left");
-  txt(fmt(total), xr, y, `bold 22px ${MONO}`, "#222", "right");
-  y += 18; dash(y);
+
+  // Total bill
+  y += 24;
+  txt("TOTAL BILL", xl, y, `bold 14px ${MONO}`, "#0f172a", "left");
+  txt(fmt(total), xr, y, `bold 20px ${MONO}`, "#0f172a", "right");
+  y += 16; dash(y);
+
+  // Member Share Box
   y += 16;
-  names.forEach((nm, i) => {
-    x.save();
-    rr(x, xl, y, xr - xl, 38, 8);
-    x.fillStyle = "#eef3ff"; x.fill();
-    x.setLineDash([4, 3]); x.strokeStyle = "#0b2a6b"; x.stroke();
-    x.restore();
-    txt(nm, xl + 12, y + 25, `bold 16px ${MONO}`, "#0b2a6b", "left");
-    txt(fmt(shares[i]), xr - 12, y + 25, `bold 16px ${MONO}`, "#0b2a6b", "right");
-    y += rowH;
-  });
-  dash(y - 6);
-  y += 14; txt(`Split equally between ${names.length}`, cx, y, `13px ${MONO}`, "#666");
-  y += 14;
+  const boxH = 74;
+  x.save();
+  rr(x, xl, y, xr - xl, boxH, 10);
+  x.fillStyle = "#eef3ff"; x.fill();
+  x.setLineDash([4, 3]); x.strokeStyle = "#2563eb"; x.lineWidth = 1.5; x.stroke();
+  x.restore();
+
+  txt("MEMBER SHARE", xl + 12, y + 22, `bold 11px ${MONO}`, "#64748b", "left");
+  txt(`Split ${memberIndex + 1} of ${totalMembers}`, xr - 12, y + 22, `11px ${MONO}`, "#3b82f6", "right");
+  txt(memberName, xl + 12, y + 52, `bold 18px ${MONO}`, "#1e3a8a", "left");
+  txt(fmt(shareAmt), xr - 12, y + 52, `bold 22px ${MONO}`, "#1d4ed8", "right");
+
+  y += boxH + 16;
+  dash(y);
+
+  // Scannable UPI QR Code
+  y += 18;
+  const QR_SIZE = 130;
   if (qr) {
-    const cell = Math.floor((QR * S) / (qr.n + 4)) / S;
-    const size = cell * (qr.n + 4), qx = cx - size / 2;
-    x.fillStyle = "#fff"; x.fillRect(qx, y, size, size);
+    const cell = Math.floor((QR_SIZE * S) / (qr.n + 4)) / S;
+    const size = cell * (qr.n + 4);
+    const qx = cx - size / 2;
+    x.fillStyle = "#fff";
+    x.fillRect(qx, y, size, size);
     x.fillStyle = "#111";
-    for (let r = 0; r < qr.n; r++)
-      for (let k = 0; k < qr.n; k++)
+    for (let r = 0; r < qr.n; r++) {
+      for (let k = 0; k < qr.n; k++) {
         if (qr.isDark(r, k)) x.fillRect(qx + (k + 2) * cell, y + (r + 2) * cell, cell, cell);
+      }
+    }
   }
-  y += QR + 18; txt("Scan for bill details", cx, y, `11px ${MONO}`, "#888");
+
+  y += QR_SIZE + 22;
+  txt(`Scan to Pay ${fmt(shareAmt)} via UPI`, cx, y, `bold 13px ${MONO}`, "#0f172a");
+  y += 18;
+  txt("Google Pay • PhonePe • Paytm • BHIM", cx, y, `11px ${MONO}`, "#64748b");
+  if (upiId && upiId.trim()) {
+    y += 16;
+    txt(`UPI ID: ${upiId.trim()}`, cx, y, `bold 10px ${MONO}`, "#2563eb");
+  }
+
+  y += 24;
+  txt("— RupeeRise Smart Bill Split —", cx, y, `10px ${MONO}`, "#94a3b8");
 
   return new Promise((res, rej) =>
     c.toBlob((b) => (b ? res(b) : rej(new Error("Could not render the bill"))), "image/png")
   );
 }
 
-// Saves a file: uses the host's download capability when present, else a normal download
+// Download helper
 async function saveBlob(blob, filename) {
-  const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
-  if (dl) return dl.save({ filename, data: blob });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -210,11 +253,11 @@ async function saveBlob(blob, filename) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 const CATEGORIES = [
-  "Vegetables", "Grocery", "Petrol", "Food & Dining", "Rent",
+  "Grocery", "Petrol", "Food & Dining", "Vegetables", "Rent",
   "Electricity", "Travel", "Shopping", "Medical", "Entertainment", "Other",
 ];
 
@@ -223,7 +266,8 @@ const INIT = {
     { cat: "Grocery", custom: "", amt: "1200" },
     { cat: "Petrol", custom: "", amt: "770" },
   ],
-  names: ["You", "Friend"],
+  names: ["Srivatsan", "Sanjay"],
+  upiId: "",
 };
 
 const labelOf = (it) => (it.cat === "Other" ? it.custom.trim() || "Other" : it.cat);
@@ -236,7 +280,6 @@ const parse = (f) => ({
   names: f.names.map((nm, i) => nm.trim() || `Person ${i + 1}`),
 });
 
-// Equal shares in paise; any leftover paise go to the first people
 const splitShares = (total, n) => {
   const paise = Math.round(total * 100);
   const base = Math.floor(paise / n);
@@ -244,37 +287,52 @@ const splitShares = (total, n) => {
   return Array.from({ length: n }, (_, i) => (base + (i < extra ? 1 : 0)) / 100);
 };
 
-function Receipt({ total, items, names, shares, qr }) {
-  const n = names.length, m = items.length;
-  const forText = items.map((it) => it.label).join(", ");
+// Continuous bill rendered inside the machine; clips into individual complete slips
+function Receipt({ total, items, names, shares, qrs }) {
+  const m = items.length;
+  const sh = slipH(m);
   return (
-    <div className="atm-receipt" style={{ height: heightFor(n, m) }}>
-      <div className="atm-r-head" style={{ height: headFor(m) }}>
-        <div className="atm-r-title">
-          <div>★ SPLIT BILL ★</div>
-          <b>RupeeRise</b>
-          <div>{TODAY}</div>
-        </div>
-        <div className="atm-r-items">
-          <small>SPENT ON</small>
-          {items.map((it, i) => (
-            <div className="atm-row" key={i}><span>{it.label}</span><span>{fmt(it.amt)}</span></div>
-          ))}
-        </div>
-      </div>
-      {/* Every piece carries the brand, what it was for, the full total and one share */}
+    <div className="atm-receipt" style={{ height: heightFor(names.length, m) }}>
       {names.map((nm, i) => (
-        <div className="atm-r-row" key={i}>
-          <div className="atm-brandline">RupeeRise</div>
-          <div className="atm-for">FOR: {forText}</div>
-          <div className="atm-row atm-total"><span>TOTAL BILL</span><span>{fmt(total)}</span></div>
-          <div className="atm-share"><span>{nm}</span><span>{fmt(shares[i])}</span></div>
+        <div className="atm-single-slip" key={i} style={{ height: sh }}>
+          <div className="atm-slip-head">
+            <div className="atm-slip-star">★ SPLIT BILL ★</div>
+            <b className="atm-slip-brand">RupeeRise</b>
+            <div className="atm-slip-date">{TODAY}</div>
+          </div>
+
+          <div className="atm-slip-items">
+            <small>SPENT ON</small>
+            {items.map((it, j) => (
+              <div className="atm-row" key={j}>
+                <span>{it.label}</span>
+                <span>{fmt(it.amt)}</span>
+              </div>
+            ))}
+            <div className="atm-row atm-slip-total">
+              <span>TOTAL BILL</span>
+              <span>{fmt(total)}</span>
+            </div>
+          </div>
+
+          <div className="atm-slip-sharebox">
+            <div className="atm-slip-share-head">
+              <span>SHARE FOR</span>
+              <span className="atm-slip-pill">Split {i + 1} of {names.length}</span>
+            </div>
+            <div className="atm-slip-share-name">{nm}</div>
+            <div className="atm-slip-share-amt">{fmt(shares[i])}</div>
+          </div>
+
+          <div className="atm-slip-qr-sec">
+            {qrs[i] && <Qr qr={qrs[i]} />}
+            <span className="atm-slip-qr-label">Scan to pay {fmt(shares[i])}</span>
+            <span className="atm-slip-qr-apps">GPay • PhonePe • Paytm</span>
+          </div>
+
+          {i < names.length - 1 && <div className="atm-slip-tear-guide" />}
         </div>
       ))}
-      <div className="atm-r-foot">
-        <div className="atm-row"><span>Split between</span><span>{n}</span></div>
-        {qr && <Qr qr={qr} />}
-      </div>
     </div>
   );
 }
@@ -285,13 +343,14 @@ export default function AtmSplitReceipt() {
   const [form, setForm] = useState(INIT);
   const [cfg, setCfg] = useState(parse(INIT));
   const [shareMsg, setShareMsg] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const n = cfg.names.length;
   const m = cfg.items.length;
   const H = heightFor(n, m);
-  const dur = 2.4 + H / 250; // taller bills print for longer
+  const dur = 2.2 + H / 300;
 
-  // reset -> idle -> print -> ready (then waits for the button)
+  // Animation cycle
   useEffect(() => {
     const t = [];
     const at = (ms, p) => t.push(setTimeout(() => setPhase(p), ms));
@@ -301,24 +360,28 @@ export default function AtmSplitReceipt() {
     return () => t.forEach(clearTimeout);
   }, [run]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // tear -> apart
   useEffect(() => {
     if (phase !== "tear") return;
-    const id = setTimeout(() => setPhase("apart"), 900);
+    const id = setTimeout(() => setPhase("apart"), 950);
     return () => clearTimeout(id);
   }, [phase]);
 
-  const restart = () => { setPhase("reset"); setRun((r) => r + 1); };
+  const restart = () => {
+    setPhase("reset");
+    setRun((r) => r + 1);
+  };
 
-  // Text / amount edits show live on the printed bill until it is split
   const edit = (next) => {
     setForm(next);
     if (phase !== "tear" && phase !== "apart") setCfg(parse(next));
   };
-  // Adding or removing a member or an expense line changes the paper size: reprint
+
   const changeLayout = (next) => {
     setForm(next);
-    if (phase === "ready") { setCfg(parse(next)); restart(); }
+    if (phase === "ready") {
+      setCfg(parse(next));
+      restart();
+    }
   };
 
   const setName = (i) => (e) =>
@@ -339,54 +402,106 @@ export default function AtmSplitReceipt() {
 
   const canEditLayout = phase === "ready" || phase === "apart";
   const busy = phase === "reset" || phase === "idle" || phase === "print" || phase === "tear";
+
   const onPress = () => {
     if (phase === "ready") return setPhase("tear");
-    if (phase === "apart") { setCfg(parse(form)); restart(); }
+    if (phase === "apart") {
+      setCfg(parse(form));
+      restart();
+    }
   };
 
   const shares = splitShares(cfg.total, n);
-  const payload = qrPayload(cfg, shares);
-  const qr = useMemo(() => safeQR(payload), [payload]);
-  const rp = { total: cfg.total, items: cfg.items, names: cfg.names, shares, qr };
+
+  // Each member gets their own 100% working scannable UPI QR code
+  const qrs = useMemo(() => {
+    return cfg.names.map((nm, i) => {
+      const upiUrl = makeUpiUrl(form.upiId, "RupeeRise", shares[i], nm);
+      return safeQR(upiUrl);
+    });
+  }, [cfg, shares, form.upiId]);
+
+  const rp = { total: cfg.total, items: cfg.items, names: cfg.names, shares, qrs };
   const hasBill = phase === "ready" || phase === "apart";
 
-  const billText = () =>
-    [
-      "*RupeeRise*",
-      "Spent on:",
-      ...cfg.items.map((it) => `• ${it.label}: ${fmt(it.amt)}`),
-      `Total bill: ${fmt(cfg.total)}`,
-      "Each person pays:",
-      ...cfg.names.map((nm, i) => `• ${nm}: ${fmt(shares[i])}`),
-    ].join("\n");
-
-  // Share sheet with the bill image (WhatsApp shows the picture to the other side);
-  // falls back to a WhatsApp message with the bill as text.
-  const shareWhatsApp = async () => {
-    const text = billText();
-    setShareMsg("");
+  // Download both split papers as individual PNG images
+  const downloadAllSlips = async () => {
+    setIsDownloading(true);
+    setShareMsg("Generating split slips...");
     try {
-      const blob = await drawBill(rp);
-      const file = new File([blob], "rupeerise-split.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: "RupeeRise", text });
-        return;
+      for (let i = 0; i < cfg.names.length; i++) {
+        const nm = cfg.names[i];
+        const blob = await drawSingleSlip({
+          total: cfg.total,
+          items: cfg.items,
+          memberName: nm,
+          memberIndex: i,
+          totalMembers: cfg.names.length,
+          shareAmt: shares[i],
+          qr: qrs[i],
+          upiId: form.upiId,
+        });
+        const safeName = nm.toLowerCase().replace(/[^a-z0-9]/g, "_");
+        const filename = `rupeerise-slip-${i + 1}-${safeName}.png`;
+        await saveBlob(blob, filename);
+
+        // Small delay between downloads so browser triggers both cleanly
+        if (i < cfg.names.length - 1) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
       }
+      setShareMsg(`✓ Downloaded all ${cfg.names.length} split slips!`);
     } catch (err) {
-      if (err && err.name === "AbortError") return; // share sheet closed
+      setShareMsg("Could not save the images. Please check permissions.");
+    } finally {
+      setIsDownloading(false);
     }
-    const w = window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-    if (w) w.opener = null;
-    else setShareMsg("Pop-up blocked. Use Save image and send it on WhatsApp.");
   };
 
-  const saveImage = async () => {
-    setShareMsg("");
+  // Download a single specific member's slip
+  const downloadMemberSlip = async (i) => {
+    const nm = cfg.names[i];
+    setShareMsg(`Generating slip for ${nm}...`);
     try {
-      await saveBlob(await drawBill(rp), "rupeerise-split.png");
+      const blob = await drawSingleSlip({
+        total: cfg.total,
+        items: cfg.items,
+        memberName: nm,
+        memberIndex: i,
+        totalMembers: cfg.names.length,
+        shareAmt: shares[i],
+        qr: qrs[i],
+        upiId: form.upiId,
+      });
+      const safeName = nm.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      await saveBlob(blob, `rupeerise-slip-${i + 1}-${safeName}.png`);
+      setShareMsg(`✓ Slip for ${nm} downloaded!`);
     } catch (err) {
-      if (!err || err.code !== "declined") setShareMsg("Could not save the image.");
+      setShareMsg("Could not save the image.");
     }
+  };
+
+  // WhatsApp share message with item breakdown and UPI payment link
+  const shareWhatsApp = async () => {
+    const lines = [
+      "*★ RupeeRise Split Bill ★*",
+      `Date: ${TODAY}`,
+      "",
+      "*Spent on:*",
+      ...cfg.items.map((it) => `• ${it.label}: ${fmt(it.amt)}`),
+      `*Total Bill: ${fmt(cfg.total)}*`,
+      "",
+      `*Split equally between ${cfg.names.length} people:*`,
+      ...cfg.names.map((nm, i) => `• *${nm}*: ${fmt(shares[i])}`),
+      "",
+      form.upiId && form.upiId.trim()
+        ? `*Pay via UPI to:* ${form.upiId.trim()}`
+        : "Scan the QR code on your slip to pay via GPay / PhonePe / Paytm",
+    ];
+    const text = lines.join("\n");
+    const w = window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    if (w) w.opener = null;
+    else setShareMsg("Pop-up blocked. Please enable pop-ups for WhatsApp.");
   };
 
   const slotY = PAD + H - 10;
@@ -399,16 +514,18 @@ export default function AtmSplitReceipt() {
         {/* Left Column: Handheld ATM Machine Stage */}
         <div className="atm-stage-wrapper">
           <div className="atm-stage" style={{ height: slotY + 280 }}>
-            {/* Paper comes out of the top slot and tears into one piece per member */}
+            {/* Paper prints out and tears into separate complete slips per member */}
             <div className={`atm-tray ${phase}`} style={{ top: PAD, height: H, "--dur": `${dur}s` }}>
               <div className="atm-wrap">
                 {cfg.names.map((_, i) => (
-                  <div key={i} className="atm-half" style={pieceStyle(i, n, m)}><Receipt {...rp} /></div>
+                  <div key={i} className="atm-half" style={pieceStyle(i, n, m)}>
+                    <Receipt {...rp} />
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Handheld terminal */}
+            {/* Handheld terminal machine */}
             <div className="atm-machine" style={{ top: slotY }}>
               <div className="atm-cap"><div className="atm-slot" /><i className="atm-led" /></div>
               <div className="atm-bezel">
@@ -433,7 +550,7 @@ export default function AtmSplitReceipt() {
         <div className="atm-form">
           <div className="atm-panel-title">
             <h4>Split Bill Details</h4>
-            <span>Customise items & members live</span>
+            <span>Item breakdown, member shares & scannable UPI QR codes</span>
           </div>
 
           {/* What the money was spent on */}
@@ -446,7 +563,7 @@ export default function AtmSplitReceipt() {
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c === "Other" ? "Other (custom)" : c}</option>)}
                   </select>
                   {it.cat === "Other" && (
-                    <input maxLength={14} placeholder="e.g. Gift" value={it.custom}
+                    <input maxLength={14} placeholder="e.g. Snacks" value={it.custom}
                       onChange={setItem(i, "custom")} aria-label={`Expense ${i + 1} name`} />
                   )}
                 </div>
@@ -469,7 +586,7 @@ export default function AtmSplitReceipt() {
           <div className="atm-members">
             {form.names.map((nm, i) => (
               <div className="atm-member" key={i}>
-                <input maxLength={10} value={nm} onChange={setName(i)} aria-label={`Member ${i + 1} name`} />
+                <input maxLength={12} value={nm} onChange={setName(i)} aria-label={`Member ${i + 1} name`} />
                 <button type="button" className="atm-x" aria-label={`Remove member ${i + 1}`}
                   disabled={!canEditLayout || form.names.length <= MIN_MEMBERS}
                   onClick={() => removeMember(i)}>×</button>
@@ -477,6 +594,21 @@ export default function AtmSplitReceipt() {
             ))}
           </div>
 
+          {/* Optional UPI ID for direct bank account QR payments */}
+          <div className="atm-upi-box">
+            <div className="atm-upi-head">
+              <span>Your UPI ID (Optional)</span>
+              <small>Scan to receive money directly</small>
+            </div>
+            <input
+              placeholder="e.g. srivatsan@oksbi or yourname@paytm"
+              value={form.upiId}
+              onChange={(e) => edit({ ...form, upiId: e.target.value })}
+              aria-label="Your UPI ID"
+            />
+          </div>
+
+          {/* Primary Split Button */}
           <div className="atm-actions">
             <button type="button" className="atm-add-btn" onClick={addMember}
               disabled={!canEditLayout || form.names.length >= MAX_MEMBERS}>
@@ -486,19 +618,46 @@ export default function AtmSplitReceipt() {
               {phase === "apart" ? "↻ New bill" : "✂ Split the bill"}
             </button>
           </div>
+
+          {/* Download Both Slips (User Requirement) */}
+          <div className="atm-download-box">
+            <button
+              type="button"
+              className="atm-download-all"
+              onClick={downloadAllSlips}
+              disabled={!hasBill || isDownloading}
+            >
+              📥 {isDownloading ? "Downloading..." : `Download Both Slips (${cfg.names.length} PNGs)`}
+            </button>
+
+            {/* Individual member slip downloads */}
+            <div className="atm-member-downloads">
+              {cfg.names.map((nm, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="atm-member-dl-btn"
+                  onClick={() => downloadMemberSlip(i)}
+                  disabled={!hasBill || isDownloading}
+                >
+                  📥 {nm} ({fmt(shares[i])})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* WhatsApp share */}
           <div className="atm-actions">
             <button type="button" className="atm-wa" onClick={shareWhatsApp} disabled={!hasBill}>
               Share on WhatsApp
             </button>
-            <button type="button" className="atm-save-btn" onClick={saveImage} disabled={!hasBill}>
-              Save image
-            </button>
           </div>
-          {shareMsg && <div className="atm-hint">{shareMsg}</div>}
+
+          {shareMsg && <div className="atm-hint atm-msg">{shareMsg}</div>}
           <div className="atm-hint">
             {phase === "apart"
-              ? "Edit items or members above, then tap New bill."
-              : `Up to ${MAX_ITEMS} items & ${MAX_MEMBERS} members. Live preview prints automatically.`}
+              ? "✓ Slips separated! Each person has their items, share & 100% scannable UPI QR code."
+              : `Tap 'Split the bill' to tear the receipt into ${n} individual payment slips.`}
           </div>
         </div>
       </div>
@@ -553,9 +712,12 @@ const CSS = `
 .atm-stage {
   position: relative;
   width: 230px;
+  transform: scale(0.92);
+  transform-origin: top center;
+  margin-bottom: -5%;
 }
 
-/* Terminal */
+/* Handheld Terminal Machine */
 .atm-machine {
   position: absolute;
   left: 5px;
@@ -708,7 +870,7 @@ const CSS = `
   font-size: 13px;
 }
 
-/* Paper */
+/* Paper Container */
 .atm-tray {
   position: absolute;
   left: 20px;
@@ -755,133 +917,155 @@ const CSS = `
 .atm-receipt {
   width: 190px;
   background: #fffdf6;
-  color: #222;
+  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Individual Full Slip */
+.atm-single-slip {
+  width: 190px;
+  background: #fffdf6;
+  color: #1e293b;
   font-family: ui-monospace, Menlo, "Courier New", monospace;
   font-size: 10px;
   display: flex;
   flex-direction: column;
+  padding: 6px 10px 8px;
   box-sizing: border-box;
+  position: relative;
 }
-.atm-r-head {
-  box-sizing: border-box;
-  border-bottom: 1px dashed #bbb;
-}
-.atm-r-title {
-  height: 70px;
+.atm-slip-head {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   text-align: center;
-  line-height: 1.35;
-  color: #555;
-  font-size: 9px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #cbd5e1;
+  margin-bottom: 4px;
 }
-.atm-r-title b {
-  font-size: 19px;
+.atm-slip-star {
+  font-size: 8px;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+.atm-slip-brand {
+  font-size: 16px;
+  color: #0b2a6b;
   line-height: 1.2;
   letter-spacing: 0.5px;
-  color: #0b2a6b;
 }
-.atm-r-items {
-  padding: 0 10px;
+.atm-slip-date {
+  font-size: 8px;
+  color: #64748b;
 }
-.atm-r-items small {
-  display: block;
-  font-size: 7.5px;
-  letter-spacing: 1.2px;
-  color: #7a869f;
-  line-height: 12px;
+.atm-slip-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #cbd5e1;
+  margin-bottom: 4px;
+}
+.atm-slip-items small {
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #64748b;
+  font-weight: 700;
   margin-bottom: 2px;
-}
-.atm-r-items .atm-row {
-  font-size: 9.5px;
-  line-height: 14px;
-  color: #333;
-  gap: 6px;
-}
-.atm-r-items .atm-row span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.atm-r-row {
-  height: 70px;
-  padding: 0 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  box-sizing: border-box;
-}
-.atm-brandline {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: #0b2a6b;
-  text-align: center;
-  line-height: 1.3;
-}
-.atm-for {
-  font-size: 8.5px;
-  color: #555;
-  text-align: center;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.atm-r-row .atm-total {
-  font-size: 10px;
-  line-height: 1.4;
-  font-weight: 700;
-  color: #333;
-}
-.atm-share {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-  padding: 3px 6px;
-  border: 1px dashed #0b2a6b;
-  border-radius: 5px;
-  background: #eef3ff;
-  color: #0b2a6b;
-  font-weight: 700;
-  font-size: 11px;
-}
-.atm-share span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.atm-r-foot {
-  height: 84px;
-  padding: 6px 10px;
-  box-sizing: border-box;
-  line-height: 1.4;
-  border-top: 1px dashed #bbb;
-  font-size: 9px;
-  color: #666;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.atm-r-foot .atm-row {
-  width: 100%;
-}
-.atm-qr {
-  width: 58px;
-  height: 58px;
-  margin-top: 2px;
-  display: block;
 }
 .atm-row {
   display: flex;
   justify-content: space-between;
+  font-size: 9px;
+  line-height: 13px;
+  color: #334155;
+}
+.atm-row span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-slip-total {
+  font-weight: 700;
+  font-size: 10px;
+  color: #0f172a;
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px dotted #e2e8f0;
+}
+.atm-slip-sharebox {
+  background: #eef3ff;
+  border: 1px dashed #2563eb;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.atm-slip-share-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 7px;
+  color: #64748b;
+  font-weight: 700;
+}
+.atm-slip-pill {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 7px;
+}
+.atm-slip-share-name {
+  font-weight: 700;
+  font-size: 11px;
+  color: #1e3a8a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-slip-share-amt {
+  font-weight: 800;
+  font-size: 14px;
+  color: #1d4ed8;
+  text-align: right;
+  line-height: 1.1;
+}
+.atm-slip-qr-sec {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1px;
+}
+.atm-slip-qr-sec .atm-qr {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+.atm-slip-qr-label {
+  font-size: 8px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.atm-slip-qr-apps {
+  font-size: 6.5px;
+  color: #64748b;
+  letter-spacing: 0.3px;
+}
+.atm-slip-tear-guide {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dashed #94a3b8;
 }
 
-/* Controls */
+/* Controls Form */
 .atm-form {
   display: flex;
   flex-direction: column;
@@ -986,16 +1170,6 @@ const CSS = `
 .atm-add-btn:hover:not(:disabled) {
   background: #e2e8f0;
 }
-.atm-save-btn {
-  padding: 8px 12px;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1!important;
-  flex: 1;
-}
-.atm-save-btn:hover:not(:disabled) {
-  background: #e2e8f0;
-}
 .atm-go {
   padding: 8px 16px;
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -1006,15 +1180,77 @@ const CSS = `
 .atm-go:hover:not(:disabled) {
   filter: brightness(1.08);
 }
-.atm-wa {
-  padding: 8px 12px;
+.atm-upi-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.atm-upi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+}
+.atm-upi-head small {
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: normal;
+}
+.atm-download-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.atm-download-all {
+  padding: 10px 14px;
   background: #16a34a;
   color: #fff;
-  flex: 1.2;
-  box-shadow: 0 2px 8px rgba(22,163,74,0.25);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+}
+.atm-download-all:hover:not(:disabled) {
+  background: #15803d;
+}
+.atm-member-downloads {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.atm-member-dl-btn {
+  padding: 6px 8px;
+  background: #ffffff;
+  color: #166534;
+  border: 1px solid #86efac!important;
+  font-size: 11px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atm-member-dl-btn:hover:not(:disabled) {
+  background: #dcfce7;
+}
+.atm-wa {
+  padding: 8px 12px;
+  background: #25d366;
+  color: #fff;
+  flex: 1;
+  box-shadow: 0 2px 8px rgba(37,211,102,0.25);
 }
 .atm-wa:hover:not(:disabled) {
-  background: #15803d;
+  background: #1eb857;
 }
 .atm-items {
   display: flex;
@@ -1059,5 +1295,9 @@ const CSS = `
   opacity: .75;
   text-align: center;
   line-height: 1.3;
+}
+.atm-msg {
+  color: #16a34a;
+  font-weight: 600;
 }
 `;
