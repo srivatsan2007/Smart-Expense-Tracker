@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 const Bills = lazy(() => import('./pages/Bills.jsx'));
+const Calendar = lazy(() => import('./pages/Calendar.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const Expenses = lazy(() => import('./pages/Expenses.jsx'));
 const Index = lazy(() => import('./pages/Index.jsx'));
@@ -43,6 +44,7 @@ export default function App() {
           {/* Main Clean SPA Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/calendar" element={<Calendar />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/bills" element={<Bills />} />
           <Route path="/salary" element={<Salary />} />
@@ -58,6 +60,7 @@ export default function App() {
           {/* Automatic Redirects from legacy .html URLs to modern clean SPA URLs */}
           <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
           <Route path="/admin.html" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/calendar.html" element={<Navigate to="/calendar" replace />} />
           <Route path="/dashboard.html" element={<Navigate to="/dashboard" replace />} />
           <Route path="/expenses.html" element={<Navigate to="/expenses" replace />} />
           <Route path="/bills.html" element={<Navigate to="/bills" replace />} />

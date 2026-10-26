@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getBills, addBill, markAsPaid, updateBill, deleteBill } = require('../controllers/billController');
+const {
+  getBills,
+  addBill,
+  markAsPaid,
+  unmarkAsPaid,
+  updateBill,
+  deleteBill
+} = require('../controllers/billController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
@@ -13,5 +20,8 @@ router.route('/:id')
 
 router.route('/:id/pay')
   .put(protect, markAsPaid);
+
+router.route('/:id/unpay')
+  .put(protect, unmarkAsPaid);
 
 module.exports = router;

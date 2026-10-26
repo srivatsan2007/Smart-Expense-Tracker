@@ -17,6 +17,7 @@ import {
   Edit2,
   Check,
   CreditCard,
+  RefreshCw,
 } from '../components/Icons.jsx';
 
 const CATEGORIES = [
@@ -178,6 +179,24 @@ export default function Bills() {
         fetchBills();
       } else {
         notify('Failed to mark as paid', 'error');
+      }
+    } catch {
+      notify('An error occurred', 'error');
+    }
+  };
+
+  const handleUnmarkPaid = async (id) => {
+    if (!window.confirm('Reverse this payment? The bill will be restored to pending status.')) return;
+    try {
+      const res = await fetch(`/api/bills/${id}/unpay`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        notify('Payment reversed successfully! Bill restored to pending.');
+        fetchBills();
+      } else {
+        notify('Failed to reverse payment', 'error');
       }
     } catch {
       notify('An error occurred', 'error');
@@ -351,7 +370,7 @@ export default function Bills() {
                           {formatINR(bill.amount)}
                         </td>
                         <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {bill.status !== 'paid' && (
+                          {bill.status !== 'paid' ? (
                             <button
                               className="btn btn-success"
                               style={{ padding: '5px 10px', fontSize: '0.75rem', marginRight: 6, minHeight: 0 }}
@@ -359,6 +378,15 @@ export default function Bills() {
                               title="Mark Bill as Paid"
                             >
                               <Check size={14} /> Pay
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-ghost"
+                              style={{ padding: '5px 8px', fontSize: '0.72rem', marginRight: 6, minHeight: 0, color: 'var(--text-muted)' }}
+                              onClick={() => handleUnmarkPaid(bill._id)}
+                              title="Reverse Payment"
+                            >
+                              <RefreshCw size={13} /> Reverse
                             </button>
                           )}
                           <button

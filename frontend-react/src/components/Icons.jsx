@@ -444,6 +444,47 @@ export const RefreshCw = (props) => (
   </Icon>
 );
 
+export const ChevronDown = (props) => (
+  <Icon {...props}>
+    <polyline points="6 9 12 15 18 9" />
+  </Icon>
+);
+
+export const ChevronUp = (props) => (
+  <Icon {...props}>
+    <polyline points="18 15 12 9 6 15" />
+  </Icon>
+);
+
+export const ChevronLeft = (props) => (
+  <Icon {...props}>
+    <polyline points="15 18 9 12 15 6" />
+  </Icon>
+);
+
+export const ChevronRight = (props) => (
+  <Icon {...props}>
+    <polyline points="9 18 15 12 9 6" />
+  </Icon>
+);
+
+export const Info = (props) => (
+  <Icon {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4" />
+    <path d="M12 8h.01" />
+  </Icon>
+);
+
+export const Calendar = (props) => (
+  <Icon {...props}>
+    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+    <line x1="16" x2="16" y1="2" y2="6" />
+    <line x1="8" x2="8" y1="2" y2="6" />
+    <line x1="3" x2="21" y1="10" y2="10" />
+  </Icon>
+);
+
 
 
 

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Receipt,
   CalendarCheck,
+  Calendar,
   Wallet,
   Target,
   FileText,
@@ -25,6 +26,7 @@ import '../css/calculator.css';
 
 const NAV_ITEMS = [
   { path: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: 'calendar', label: 'Calendar', icon: Calendar },
   { path: 'expenses', label: 'Expenses', icon: Receipt },
   { path: 'bills', label: 'Bills', icon: CalendarCheck },
   { path: 'salary', label: 'Salary', icon: Wallet },

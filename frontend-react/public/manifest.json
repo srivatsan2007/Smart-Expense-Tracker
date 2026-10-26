@@ -2,17 +2,18 @@
   "id": "/",
   "name": "RupeeRise - Personal Finance",
   "short_name": "RupeeRise",
-  "description": "RupeeRise: Track Smarter. Save Better. Rise Higher. Modern personal finance dashboard.",
+  "description": "RupeeRise: Track Smarter. Save Better. Rise Higher. Modern personal finance dashboard with Safe-to-Spend & Financial Calendar.",
   "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F4F7FB",
-  "theme_color": "#477FE0",
+  "background_color": "#F6FAF2",
+  "theme_color": "#355E3B",
   "icons": [
     {
       "src": "/images/rupeerise-logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/favicon.png",

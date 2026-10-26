@@ -27,6 +27,7 @@ app.use('/api/budget', require('./routes/budgetRoutes'));
 app.use('/api/ocr', require('./routes/ocrRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/bills', require('./routes/billRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Serve frontend static files
 const distPath = path.join(__dirname, '../frontend-react/dist');
@@ -73,4 +74,12 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  // Initialize background push notification scheduler
+  try {
+    const { initScheduler } = require('./services/reminderScheduler');
+    initScheduler();
+  } catch (err) {
+    console.error('Failed to initialize reminder scheduler:', err.message);
+  }
 });
+

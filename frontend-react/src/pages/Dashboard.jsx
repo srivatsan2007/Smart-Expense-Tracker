@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import StatCard from '../components/StatCard.jsx';
+import SafeToSpendCard from '../components/SafeToSpendCard.jsx';
 import ChartCanvas from '../components/ChartCanvas.jsx';
 import Modal from '../components/Modal.jsx';
 import EmptyState from '../components/EmptyState.jsx';
@@ -41,8 +42,14 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [salaries, setSalaries] = useState([]);
   const [bills, setBills] = useState([]);
+  const [savingsGoals, setSavingsGoals] = useState([]);
   const [budget, setBudget] = useState(null);
   const [timeRange, setTimeRange] = useState('all'); // all | 6m | 3m
+  const [customBalance, setCustomBalance] = useState(() => {
+    const saved = localStorage.getItem('rupeerise_custom_balance');
+    return saved !== null && saved !== '' ? Number(saved) : null;
+  });
+
 
   // Quick Action Modal states
   const [expenseModalOpen, setExpenseModalOpen] = useState(false);
@@ -81,22 +88,35 @@ export default function Dashboard() {
       const currMonth = MONTH_NAMES[new Date().getMonth()];
       const currYear = new Date().getFullYear();
 
-      const [expRes, salRes, billRes, budRes] = await Promise.all([
+      const [expRes, salRes, billRes, budRes, savRes] = await Promise.all([
         fetch('/api/expenses', { headers }),
         fetch('/api/salaries', { headers }),
         fetch('/api/bills', { headers }),
         fetch(`/api/budget?month=${currMonth}&year=${currYear}`, { headers }),
+        fetch('/api/savings', { headers }),
       ]);
 
       if (expRes.ok) setExpenses(await expRes.json());
       if (salRes.ok) setSalaries(await salRes.json());
       if (billRes.ok) setBills(await billRes.json());
       if (budRes.ok) setBudget(await budRes.json());
+      if (savRes.ok) setSavingsGoals(await savRes.json());
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       notify('Could not load some dashboard data', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOverrideBalance = (newBalance) => {
+    setCustomBalance(newBalance);
+    if (newBalance === null) {
+      localStorage.removeItem('rupeerise_custom_balance');
+      notify('Available balance reset to recorded total');
+    } else {
+      localStorage.setItem('rupeerise_custom_balance', String(newBalance));
+      notify(`Available balance updated to ₹${Number(newBalance).toLocaleString('en-IN')}`);
     }
   };
 
@@ -467,6 +487,17 @@ export default function Dashboard() {
             badgeType="success"
           />
         </div>
+
+        {/* Safe-to-Spend Real-time Financial Commitment Calculator */}
+        <SafeToSpendCard
+          availableBalance={balance}
+          bills={bills}
+          expenses={expenses}
+          savingsGoals={savingsGoals}
+          budget={budget}
+          customBalance={customBalance}
+          onOverrideBalance={handleOverrideBalance}
+        />
 
         {/* Quick Actions Bar */}
         <div className="quick-actions-bar">
