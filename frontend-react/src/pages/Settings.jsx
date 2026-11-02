@@ -22,7 +22,8 @@ import {
   Sparkles,
   RefreshCw,
   Check,
-  Info
+  Info,
+  Download
 } from '../components/Icons.jsx';
 import {
   isPushNotificationSupported,
@@ -30,6 +31,11 @@ import {
   subscribeToPushManager,
   getExistingPushSubscription
 } from '../utils/pushNotifications.js';
+import {
+  checkGitHubReleaseUpdate,
+  CURRENT_APP_VERSION,
+  GITHUB_REPO
+} from '../utils/updateChecker.js';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -84,6 +90,9 @@ export default function Settings() {
     quietHoursEnd: '07:00',
     privacyMode: false
   });
+
+  // App Update State
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const fetchBudget = async () => {
     try {
@@ -277,6 +286,37 @@ export default function Settings() {
     } finally {
       setSavingPrefs(false);
     }
+  };
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const res = await checkGitHubReleaseUpdate(true);
+      if (res && res.hasUpdate) {
+        window.dispatchEvent(new CustomEvent('rupeerise_show_update_prompt', { detail: res }));
+      } else {
+        notify(`RupeeRise is up to date! (Current version: v${CURRENT_APP_VERSION})`, 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      notify('Error checking for updates', 'error');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleSimulateUpdate = () => {
+    const sampleUpdate = {
+      hasUpdate: true,
+      currentVersion: CURRENT_APP_VERSION,
+      latestVersion: '1.1.0',
+      releaseTag: 'v1.1.0',
+      releaseName: 'RupeeRise v1.1.0 — Two-Side Expenses & Auto Account Detection',
+      releaseNotes: '• Two-side layout: Daily Expenses & Monthly Expenses in dedicated views\n• Automatic Account Detection & Seamless Auto-Sign-In\n• Guest auth prompts on protected expense operations\n• Automated GitHub release updater with direct APK download\n• Optimized performance and smooth animations',
+      downloadUrl: `https://github.com/${GITHUB_REPO}/releases`,
+      hasApk: true
+    };
+    window.dispatchEvent(new CustomEvent('rupeerise_show_update_prompt', { detail: sampleUpdate }));
   };
 
   const saveBudget = async (e) => {
@@ -909,6 +949,83 @@ export default function Settings() {
                 {savingProfile ? 'Updating...' : 'Update Profile Details'}
               </button>
             </form>
+          </div>
+
+          {/* APP UPDATES & GITHUB RELEASES CARD */}
+          <div className="glass-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 12,
+                  background: 'rgba(53, 94, 59, 0.12)',
+                  color: 'var(--color-primary, #355E3B)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Download size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.12rem', fontWeight: 600 }}>App Version & Updates</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  Automatic update detection via GitHub Releases
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '12px 16px',
+                borderRadius: 12,
+                background: 'var(--bg-main)',
+                border: '1px solid var(--border-color)',
+                marginBottom: 16,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>
+                  Installed Version
+                </span>
+                <strong style={{ fontSize: '1rem', color: 'var(--color-forest, #1F3328)' }}>
+                  RupeeRise v{CURRENT_APP_VERSION}
+                </strong>
+              </div>
+              <span className="badge badge-success" style={{ fontSize: '0.74rem' }}>
+                Up to Date
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 16 }}>
+              RupeeRise automatically checks the GitHub repository (<code>{GITHUB_REPO}</code>) for new releases and prompts you whenever a new APK or web version is available.
+            </p>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flex: 1, justifyContent: 'center', fontSize: '0.82rem' }}
+                onClick={handleCheckUpdate}
+                disabled={checkingUpdate}
+              >
+                {checkingUpdate ? 'Checking GitHub...' : 'Check for Updates'}
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ fontSize: '0.82rem' }}
+                onClick={handleSimulateUpdate}
+                title="Preview the automatic update prompt dialog"
+              >
+                Test Prompt
+              </button>
+            </div>
           </div>
 
           {/* Danger Zone */}

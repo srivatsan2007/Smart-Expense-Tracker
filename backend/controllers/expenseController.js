@@ -26,18 +26,22 @@ const getExpenses = async (req, res) => {
 // @route   POST /api/expenses
 // @access  Private
 const createExpense = async (req, res) => {
-  const { amount, category, description, date, paymentMethod, receiptUrl } = req.body;
+  const { amount, category, description, date, paymentMethod, receiptUrl, expenseType, isMonthly } = req.body;
 
   try {
     const db = admin.firestore();
+    const resolvedType = expenseType || (isMonthly ? 'monthly' : 'daily');
     const expenseData = {
       user: req.user.id,
       amount: Number(amount),
       category,
-      description,
+      description: description || '',
       date: date || Date.now(),
-      paymentMethod,
-      receiptUrl: receiptUrl || null
+      paymentMethod: paymentMethod || 'UPI',
+      receiptUrl: receiptUrl || null,
+      expenseType: resolvedType, // 'daily' or 'monthly'
+      isMonthly: resolvedType === 'monthly',
+      createdAt: new Date().toISOString()
     };
 
     const docRef = await db.collection('expenses').add(expenseData);
@@ -51,7 +55,7 @@ const createExpense = async (req, res) => {
 // @route   PUT /api/expenses/:id
 // @access  Private
 const updateExpense = async (req, res) => {
-  const { amount, category, description, date, paymentMethod, receiptUrl } = req.body;
+  const { amount, category, description, date, paymentMethod, receiptUrl, expenseType, isMonthly } = req.body;
 
   try {
     const db = admin.firestore();
@@ -63,13 +67,20 @@ const updateExpense = async (req, res) => {
         return res.status(401).json({ message: 'Not authorized to update this expense' });
       }
 
-      const updateData = {};
-      if (amount !== undefined) updateData.amount = amount;
+      const updateData = {
+        updatedAt: new Date().toISOString()
+      };
+      if (amount !== undefined) updateData.amount = Number(amount);
       if (category !== undefined) updateData.category = category;
       if (description !== undefined) updateData.description = description;
       if (date !== undefined) updateData.date = date;
       if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
       if (receiptUrl !== undefined) updateData.receiptUrl = receiptUrl;
+      if (expenseType !== undefined || isMonthly !== undefined) {
+        const resolved = expenseType || (isMonthly ? 'monthly' : 'daily');
+        updateData.expenseType = resolved;
+        updateData.isMonthly = resolved === 'monthly';
+      }
 
       await expenseRef.update(updateData);
       

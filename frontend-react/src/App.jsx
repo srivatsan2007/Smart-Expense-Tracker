@@ -18,6 +18,7 @@ const Settings = lazy(() => import('./pages/Settings.jsx'));
 
 import SplashScreen from './components/SplashScreen.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import UpdatePromptModal from './components/UpdatePromptModal.jsx';
 
 function RouteLoading() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <SplashScreen />
+      <UpdatePromptModal />
       <ErrorBoundary>
         <Suspense fallback={<RouteLoading />}>
           <Routes>

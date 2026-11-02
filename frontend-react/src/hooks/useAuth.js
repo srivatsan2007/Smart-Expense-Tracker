@@ -72,15 +72,41 @@ const authConfig = async () => {
 export async function loginUser(loginId, password) {
   let emails = [loginId];
   if (!loginId.includes('@')) {
-    const res = await fetch(`${AUTH_API}/get-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ loginId }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Mobile number not found');
-    emails = data.emails || [data.email];
+    // 1. First check if we have a saved remembered account with this mobile number
+    const savedAccountStr = localStorage.getItem('remembered_account');
+    let foundEmail = null;
+    if (savedAccountStr) {
+      try {
+        const saved = JSON.parse(savedAccountStr);
+        if (saved.loginId === loginId && saved.email) {
+          foundEmail = saved.email;
+        }
+      } catch (e) {}
+    }
+
+    if (foundEmail) {
+      emails = [foundEmail];
+    } else {
+      try {
+        const res = await fetch(`${AUTH_API}/get-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ loginId }),
+        });
+        const data = await res.json();
+        if (res.ok && (data.emails || data.email)) {
+          emails = data.emails || [data.email];
+        } else if (!res.ok) {
+          throw new Error(data.message || 'Mobile number not found');
+        }
+      } catch (err) {
+        if (!foundEmail) {
+          throw err;
+        }
+      }
+    }
   }
+
   let credential = null, lastError = null;
   for (const email of emails) {
     try {
@@ -92,27 +118,190 @@ export async function loginUser(loginId, password) {
   }
   if (!credential) throw lastError || new Error('Invalid credentials');
 
-  localStorage.setItem('token', await credential.user.getIdToken());
-  const res = await fetch(`${AUTH_API}/profile`, await authConfig());
+  const token = await credential.user.getIdToken();
+  localStorage.setItem('token', token);
+
   let profile = null;
-  if (res.ok) {
-    profile = await res.json();
-    localStorage.setItem('user', JSON.stringify(profile));
+  // Attempt to fetch profile from backend API; if backend is offline, gracefully fallback to user details
+  try {
+    const config = await authConfig();
+    const res = await fetch(`${AUTH_API}/profile`, config);
+    if (res.ok) {
+      profile = await res.json();
+    }
+  } catch (backendErr) {
+    console.warn('Backend server unreachable during login, using direct Firebase profile:', backendErr);
   }
+
+  if (!profile) {
+    profile = {
+      _id: credential.user.uid,
+      name: credential.user.displayName || credential.user.email?.split('@')[0] || 'User',
+      email: credential.user.email,
+      role: 'user'
+    };
+  }
+
+  localStorage.setItem('user', JSON.stringify(profile));
+  localStorage.setItem('remembered_account', JSON.stringify({
+    email: profile.email || credential.user.email,
+    name: profile.name || credential.user.displayName || 'User',
+    loginId: loginId,
+    lastActive: new Date().toISOString()
+  }));
+
   return profile;
 }
 
 export async function registerUser(name, email, mobileNumber, password) {
   const { user } = await firebase.auth().createUserWithEmailAndPassword(email, password);
-  localStorage.setItem('token', await user.getIdToken());
-  const config = await authConfig();
-  const res = await fetch(`${AUTH_API}/register`, {
-    method: 'POST',
-    ...config,
-    body: JSON.stringify({ name, email, mobileNumber, uid: user.uid, role: 'user' }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message);
+  const token = await user.getIdToken();
+  localStorage.setItem('token', token);
+
+  let data = null;
+  try {
+    const config = await authConfig();
+    const res = await fetch(`${AUTH_API}/register`, {
+      method: 'POST',
+      ...config,
+      body: JSON.stringify({ name, email, mobileNumber, uid: user.uid, role: 'user' }),
+    });
+    if (res.ok) {
+      data = await res.json();
+    }
+  } catch (backendErr) {
+    console.warn('Backend register sync unreachable, using client profile:', backendErr);
+  }
+
+  if (!data) {
+    data = { _id: user.uid, name, email, mobileNumber, role: 'user' };
+  }
+
   localStorage.setItem('user', JSON.stringify(data));
+  localStorage.setItem('remembered_account', JSON.stringify({
+    email,
+    name,
+    loginId: email,
+    lastActive: new Date().toISOString()
+  }));
   return data;
 }
+
+// Auto-detects previously authenticated session or active Firebase user and logs in automatically
+export async function autoDetectAndLogin() {
+  return new Promise((resolve) => {
+    try {
+      const existingToken = localStorage.getItem('token');
+      const existingUserStr = localStorage.getItem('user');
+
+      const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+        if (unsubscribe) unsubscribe();
+
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            localStorage.setItem('token', token);
+            let profile = null;
+            try {
+              const res = await fetch(`${AUTH_API}/profile`, {
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+              });
+              if (res.ok) {
+                profile = await res.json();
+              }
+            } catch (fetchErr) {
+              console.warn('Backend profile fetch failed, using cached session:', fetchErr);
+            }
+
+            if (!profile && existingUserStr) {
+              try { profile = JSON.parse(existingUserStr); } catch (e) {}
+            }
+
+            if (!profile) {
+              profile = {
+                _id: user.uid,
+                name: user.displayName || user.email?.split('@')[0] || 'User',
+                email: user.email,
+                role: 'user'
+              };
+            }
+
+            localStorage.setItem('user', JSON.stringify(profile));
+            localStorage.setItem('remembered_account', JSON.stringify({
+              email: profile.email || user.email,
+              name: profile.name || user.displayName || 'User',
+              loginId: profile.email || user.email,
+              lastActive: new Date().toISOString()
+            }));
+            resolve({ success: true, profile, user, autoDetected: true });
+            return;
+          } catch (err) {
+            console.warn('Auto-login session restoration error:', err);
+          }
+        }
+
+        // 2. Fallback check for cached localStorage session
+        if (existingToken && existingUserStr) {
+          try {
+            const parsed = JSON.parse(existingUserStr);
+            resolve({ success: true, profile: parsed, token: existingToken, autoDetected: true });
+            return;
+          } catch {
+            // Invalid cached JSON
+          }
+        }
+
+        resolve({ success: false });
+      });
+    } catch (e) {
+      console.warn('Auto detect failed:', e);
+      resolve({ success: false });
+    }
+  });
+}
+
+// Google Sign-In with 1-click automatic account detection
+export async function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const credential = await firebase.auth().signInWithPopup(provider);
+  const user = credential.user;
+  const token = await user.getIdToken();
+  localStorage.setItem('token', token);
+
+  const config = await authConfig();
+  let profile = null;
+  const res = await fetch(`${AUTH_API}/profile`, config);
+
+  if (res.ok) {
+    profile = await res.json();
+  } else {
+    // Sync newly authenticated Google user profile to backend
+    const regRes = await fetch(`${AUTH_API}/register`, {
+      method: 'POST',
+      ...config,
+      body: JSON.stringify({
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        mobileNumber: user.phoneNumber || '',
+        uid: user.uid,
+        role: 'user'
+      })
+    });
+    if (regRes.ok) {
+      profile = await regRes.json();
+    }
+  }
+
+  const finalProfile = profile || { _id: user.uid, name: user.displayName || 'User', email: user.email };
+  localStorage.setItem('user', JSON.stringify(finalProfile));
+  localStorage.setItem('remembered_account', JSON.stringify({
+    email: user.email,
+    name: user.displayName || user.email.split('@')[0],
+    loginId: user.email,
+    lastActive: new Date().toISOString()
+  }));
+
+  return finalProfile;
+}
+
