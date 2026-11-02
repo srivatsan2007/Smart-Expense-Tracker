@@ -18,8 +18,8 @@ export function getBackendBaseUrl() {
     (window.location.hostname === 'localhost' && !window.location.port);
 
   if (isCapacitor) {
-    // Default development IP of the host computer
-    return 'http://10.18.146.59:5000';
+    // Default production cloud backend
+    return 'https://smart-expense-tracker-1-g5b4.onrender.com';
   }
 
   return '';

@@ -108,7 +108,7 @@ export default function Login() {
   };
 
   const openServerModal = () => {
-    setServerUrlInput(getBackendBaseUrl() || 'http://10.18.146.59:5000');
+    setServerUrlInput(getBackendBaseUrl() || 'https://smart-expense-tracker-1-g5b4.onrender.com');
     setTestStatus(null);
     setShowServerModal(true);
   };
@@ -474,7 +474,7 @@ export default function Login() {
                   type="text"
                   value={serverUrlInput}
                   onChange={(e) => setServerUrlInput(e.target.value)}
-                  placeholder="e.g. http://10.18.146.59:5000 or https://rupeerise.onrender.com"
+                  placeholder="e.g. https://smart-expense-tracker-1-g5b4.onrender.com"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
