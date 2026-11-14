@@ -7,6 +7,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
 import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
 import { notify } from '../components/Toast.jsx';
+import { requestReceiptSignature, buildVerifyUrl, shortHash } from '../utils/signing.js';
 import {
   QrCode,
   Plus,
@@ -17,7 +18,8 @@ import {
   ArrowLeft,
   IndianRupee,
   Receipt as ReceiptIcon,
-  CreditCard
+  CreditCard,
+  Shield
 } from '../components/Icons.jsx';
 
 const CATEGORIES = [
@@ -39,6 +41,7 @@ export default function QrGenerator() {
   const [generating, setGenerating] = useState(false);
   const [qrUrl, setQrUrl] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [receiptSig, setReceiptSig] = useState(null); // server-issued digital signature for the current receipt
   const [showAtmModal, setShowAtmModal] = useState(false);
 
   const update = (id, key, value) =>
@@ -96,9 +99,13 @@ export default function QrGenerator() {
     };
 
     setGenerating(true);
+    setReceiptSig(null);
     try {
       const receiptURL = `${window.location.origin}/receipt?id=${expenseId}`;
       await saveQRToFirebase(expenseData, receiptURL);
+      // Digitally sign the saved receipt on the server (SHA-256 + X.509 certificate)
+      const sig = await requestReceiptSignature(expenseId);
+      setReceiptSig(sig);
       if (canvasRef.current) {
         QRCode.toCanvas(canvasRef.current, receiptURL, {
           width: 240,
@@ -382,6 +389,42 @@ export default function QrGenerator() {
               <CheckCircle2 size={16} />
               <span>Saved securely to cloud database</span>
             </div>
+          )}
+
+          {qrUrl && receiptSig && (
+            <div
+              style={{
+                marginTop: 14,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid var(--border-color)',
+                textAlign: 'left',
+                width: '100%',
+                maxWidth: 300,
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--success-color)', fontWeight: 600, marginBottom: 4 }}>
+                <Shield size={15} />
+                <span>Digitally signed &middot; {receiptSig.scheme}</span>
+              </div>
+              <div style={{ wordBreak: 'break-all' }}>Digest: {shortHash(receiptSig.hash)}</div>
+              <a
+                href={buildVerifyUrl(receiptSig.docId, receiptSig.hash)}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: 'var(--primary-color, #355E3B)', fontWeight: 600 }}
+              >
+                Verify signature online
+              </a>
+            </div>
+          )}
+
+          {qrUrl && !receiptSig && (
+            <p style={{ marginTop: 14, fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: 300 }}>
+              Digital signing was unavailable, so this receipt is stored but not signed. Opening the receipt later retries signing.
+            </p>
           )}
         </div>
       </div>

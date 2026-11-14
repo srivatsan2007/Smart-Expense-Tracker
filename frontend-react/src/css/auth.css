@@ -110,3 +110,88 @@
   align-items: center;
   gap: 8px;
 }
+
+/* ---------- Terms & Conditions ---------- */
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 4px 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.terms-check input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.terms-check a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.terms-check a:hover {
+  text-decoration: underline;
+}
+
+.terms-page-wrap {
+  align-items: flex-start;
+}
+
+.terms-card {
+  max-width: 760px;
+  text-align: left;
+}
+
+.terms-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+.terms-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: var(--text-color);
+}
+
+.terms-meta {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin: 0 0 22px 0;
+}
+
+.terms-section {
+  margin-bottom: 20px;
+  scroll-margin-top: 16px;
+}
+
+.terms-section h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: var(--text-color);
+}
+
+.terms-section p {
+  margin: 0 0 8px 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  opacity: 0.88;
+}

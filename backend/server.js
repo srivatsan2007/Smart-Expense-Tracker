@@ -10,6 +10,9 @@ connectDB();
 
 const app = express();
 
+// Behind Render's proxy, trust X-Forwarded-For so per-IP rate limiting sees the real client IP
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -28,6 +31,10 @@ app.use('/api/ocr', require('./routes/ocrRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/bills', require('./routes/billRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/sign', require('./routes/signRoutes'));
+app.use('/api/verify', require('./routes/verifyRoutes'));
+app.use('/api/archives', require('./routes/archiveRoutes'));
+app.use('/api/shared', require('./routes/sharedRoutes'));
 
 // Serve frontend static files
 const distPath = path.join(__dirname, '../frontend-react/dist');
@@ -74,6 +81,18 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  // Report whether the digital-signature certificate is available
+  try {
+    const signer = require('./services/signer');
+    if (signer.isConfigured()) {
+      const cert = signer.getCertificateInfo();
+      console.log(`Digital signatures enabled: ${cert.scheme}, cert SHA-256 ${cert.fingerprint256}`);
+    } else {
+      console.warn('Digital signatures DISABLED: no signing key/certificate found. Run "npm run gen:cert" (see README).');
+    }
+  } catch (err) {
+    console.warn('Digital signatures DISABLED:', err.message);
+  }
   // Initialize background push notification scheduler
   try {
     const { initScheduler } = require('./services/reminderScheduler');

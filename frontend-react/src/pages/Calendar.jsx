@@ -79,7 +79,7 @@ export default function FinancialCalendar() {
       setLoading(true);
       const headers = getAuthHeaders();
       const [expRes, billRes] = await Promise.all([
-        fetch('/api/expenses', { headers }),
+        fetch('/api/expenses?includeArchived=true', { headers }),
         fetch('/api/bills', { headers })
       ]);
 

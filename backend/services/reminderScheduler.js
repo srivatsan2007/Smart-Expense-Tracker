@@ -2,22 +2,32 @@ const webpush = require('web-push');
 const cron = require('node-cron');
 const { admin } = require('../db');
 
-// VAPID keys setup
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BFwbSbz9-qqK6HSUL1qjOiMydAqlBIaTpS_Rf_FBbhUOSVYSr0R71rNpPIwAaWoocmXwcghFLL8Mf0RPZa70gw0';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'vyoYRKhwwj4n7Z3q4TqUxRj30PzFG64Vce4TMW-fl7E';
+// VAPID keys (browser Web Push only) come from the .env file - never hard-code them.
+// Generate a pair with:  npx web-push generate-vapid-keys
+// The Android app does NOT need these: it uses on-device local notifications.
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:support@rupeerise.app';
+const WEB_PUSH_ENABLED = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
 
-try {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-  console.log('[WebPush] VAPID details configured successfully');
-} catch (err) {
-  console.error('[WebPush] Failed to configure VAPID details:', err.message);
+if (WEB_PUSH_ENABLED) {
+  try {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    console.log('[WebPush] VAPID details configured successfully');
+  } catch (err) {
+    console.error('[WebPush] Failed to configure VAPID details:', err.message);
+  }
+} else {
+  console.warn('[WebPush] VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY not set in .env - browser web push is disabled (Android app reminders are unaffected).');
 }
 
 /**
  * Send push notification to all active devices registered by a user
  */
 async function sendPushToUser(userId, payload) {
+  if (!WEB_PUSH_ENABLED) {
+    return { success: false, reason: 'Web push is not configured on the server (VAPID keys missing in .env)' };
+  }
   const db = admin.firestore();
   const snapshot = await db.collection('pushSubscriptions')
     .where('user', '==', userId)

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useRequireAuth, logoutUser } from '../hooks/useAuth.js';
 import Calculator from './Calculator.jsx';
+import BillReminderSync from './BillReminderSync.jsx';
 import ToastContainer from './Toast.jsx';
 import {
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
   Menu,
   X,
   User,
+  Archive,
 } from './Icons.jsx';
 import '../css/style.css';
 import '../css/dashboard.css';
@@ -31,6 +33,7 @@ const NAV_ITEMS = [
   { path: 'bills', label: 'Bills', icon: CalendarCheck },
   { path: 'salary', label: 'Salary', icon: Wallet },
   { path: 'savings-goals', label: 'Savings Goals', icon: Target },
+  { path: 'history', label: 'Monthly History', icon: Archive },
   { path: 'reports', label: 'Reports', icon: FileText },
   { path: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
@@ -69,6 +72,7 @@ export default function Layout({ title, active, children }) {
 
   return (
     <div className="app-container">
+      <BillReminderSync />
       {/* Mobile Hamburger Button */}
       <button
         className="mobile-menu-btn"

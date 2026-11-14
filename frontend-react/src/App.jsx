@@ -5,6 +5,8 @@ const Bills = lazy(() => import('./pages/Bills.jsx'));
 const Calendar = lazy(() => import('./pages/Calendar.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const Expenses = lazy(() => import('./pages/Expenses.jsx'));
+const History = lazy(() => import('./pages/History.jsx'));
+const SharedStatement = lazy(() => import('./pages/SharedStatement.jsx'));
 const Index = lazy(() => import('./pages/Index.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const QrGenerator = lazy(() => import('./pages/QrGenerator.jsx'));
@@ -15,6 +17,8 @@ const Reports = lazy(() => import('./pages/Reports.jsx'));
 const Salary = lazy(() => import('./pages/Salary.jsx'));
 const SavingsGoals = lazy(() => import('./pages/SavingsGoals.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
+const Verify = lazy(() => import('./pages/Verify.jsx'));
+const Terms = lazy(() => import('./pages/Terms.jsx'));
 
 import SplashScreen from './components/SplashScreen.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
@@ -51,13 +55,20 @@ export default function App() {
           <Route path="/bills" element={<Bills />} />
           <Route path="/salary" element={<Salary />} />
           <Route path="/savings-goals" element={<SavingsGoals />} />
+          <Route path="/history" element={<History />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/terms.html" element={<Navigate to="/terms" replace />} />
           <Route path="/qr-generator" element={<QrGenerator />} />
           <Route path="/qr-scanner" element={<QrScanner />} />
           <Route path="/receipt" element={<Receipt />} />
+          {/* Public: anyone can verify a signed statement/receipt from its QR code */}
+          <Route path="/verify/:docId" element={<Verify />} />
+          {/* Public: a monthly statement shared through a QR code / link */}
+          <Route path="/shared/:token" element={<SharedStatement />} />
 
           {/* Automatic Redirects from legacy .html URLs to modern clean SPA URLs */}
           <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
@@ -68,6 +79,7 @@ export default function App() {
           <Route path="/bills.html" element={<Navigate to="/bills" replace />} />
           <Route path="/salary.html" element={<Navigate to="/salary" replace />} />
           <Route path="/savings-goals.html" element={<Navigate to="/savings-goals" replace />} />
+          <Route path="/history.html" element={<Navigate to="/history" replace />} />
           <Route path="/reports.html" element={<Navigate to="/reports" replace />} />
           <Route path="/settings.html" element={<Navigate to="/settings" replace />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />

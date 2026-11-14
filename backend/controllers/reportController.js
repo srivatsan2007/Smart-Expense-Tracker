@@ -4,26 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { admin } = require('../db');
 const { parse } = require('json2csv');
+const { fetchUserExpenses } = require('../services/expenseQuery');
 
-// Helper to get expenses from Firestore with optional date range filter
-const fetchUserExpenses = async (userId, startDate, endDate) => {
-  const db = admin.firestore();
-  const snapshot = await db.collection('expenses')
-    .where('user', '==', userId)
-    .get();
-  let expenses = snapshot.docs.map(doc => doc.data());
-  if (startDate) {
-    const s = new Date(startDate);
-    expenses = expenses.filter(e => new Date(e.date) >= s);
-  }
-  if (endDate) {
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    expenses = expenses.filter(e => new Date(e.date) <= end);
-  }
-  expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-  return expenses;
-};
+// fetchUserExpenses lives in services/expenseQuery.js (shared with the signature service)
 
 // @desc    Generate PDF report
 // @route   GET /api/reports/pdf

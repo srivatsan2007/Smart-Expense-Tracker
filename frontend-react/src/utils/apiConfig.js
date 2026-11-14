@@ -51,6 +51,14 @@ if (typeof window !== 'undefined' && !window.__rupeeriseFetchInitialized) {
 
     try {
       const response = await originalFetch.call(this, input, init);
+
+      // Tell the reminder scheduler whenever a bill is added / edited / paid / deleted
+      try {
+        const method = String(init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase();
+        if (method !== 'GET' && response.ok && /\/api\/bills(\/|$|\?)/.test(String(url))) {
+          window.dispatchEvent(new Event('rupeerise:bills-changed'));
+        }
+      } catch { /* never break a request because of this */ }
       
       // Wrap .json() to provide user-friendly error messages when HTML fallback is returned
       const originalJson = response.json;

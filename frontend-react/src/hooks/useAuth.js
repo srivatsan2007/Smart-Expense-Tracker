@@ -32,8 +32,13 @@ export const getFreshAuthHeaders = async () => {
 };
 
 export function logoutUser(navigate) {
+  import('../utils/localReminders.js')
+    .then((m) => m.cancelAllReminders())
+    .catch(() => {});
   firebase.auth().signOut().then(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('rr_local_reminders');
+    localStorage.removeItem('rr_notif_prefs');
     localStorage.removeItem('user');
     if (navigate) navigate('/login');
     else window.location.href = '/login';

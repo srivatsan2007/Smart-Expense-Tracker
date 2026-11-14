@@ -32,6 +32,14 @@ import {
   getExistingPushSubscription
 } from '../utils/pushNotifications.js';
 import {
+  isNativeApp,
+  getReminderFlag,
+  checkReminderPermission,
+  enableReminders,
+  disableReminders,
+  sendTestReminder,
+} from '../utils/localReminders.js';
+import {
   checkGitHubReleaseUpdate,
   CURRENT_APP_VERSION,
   GITHUB_REPO
@@ -144,6 +152,24 @@ export default function Settings() {
 
   // Fetch Notification Settings & Browser Push Status
   const fetchNotificationState = async () => {
+    if (isNativeApp()) {
+      // Android app: on-device reminders (no browser push involved)
+      setPushSupported(true);
+      const perm = await checkReminderPermission();
+      setPermission(perm === 'prompt' ? 'default' : perm);
+      setIsSubscribed(perm === 'granted' && getReminderFlag() === '1');
+      try {
+        const res = await fetch('/api/notifications/preferences', { headers: getAuthHeaders() });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifPrefs(prev => ({ ...prev, ...data }));
+        }
+      } catch (err) {
+        console.error('Error fetching notification preferences:', err);
+      }
+      return;
+    }
+
     const supported = isPushNotificationSupported();
     setPushSupported(supported);
 
@@ -177,6 +203,26 @@ export default function Settings() {
 
   // Enable Push Notifications
   const handleEnableNotifications = async () => {
+    if (isNativeApp()) {
+      try {
+        setSubscribing(true);
+        const result = await enableReminders();
+        if (result.ok) {
+          setPermission('granted');
+          setIsSubscribed(true);
+          notify('Bill reminders enabled! You will be notified even when RupeeRise is closed.');
+        } else {
+          setPermission('denied');
+          notify('Notification permission was denied. Turn it on in Android Settings > Apps > RupeeRise > Notifications.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        notify('Failed to enable reminders', 'error');
+      } finally {
+        setSubscribing(false);
+      }
+      return;
+    }
     try {
       setSubscribing(true);
 
@@ -218,6 +264,17 @@ export default function Settings() {
 
   // Disable Push Notifications
   const handleDisableNotifications = async () => {
+    if (isNativeApp()) {
+      try {
+        setSubscribing(true);
+        await disableReminders();
+        setIsSubscribed(false);
+        notify('Bill reminders turned off on this phone');
+      } finally {
+        setSubscribing(false);
+      }
+      return;
+    }
     try {
       setSubscribing(true);
       const sub = await getExistingPushSubscription();
@@ -243,6 +300,19 @@ export default function Settings() {
 
   // Send Test Push Notification
   const handleSendTestNotification = async () => {
+    if (isNativeApp()) {
+      try {
+        setTestingPush(true);
+        await sendTestReminder();
+        notify('Test notification will appear in about 3 seconds. You can close the app to check.');
+      } catch (err) {
+        console.error(err);
+        notify('Could not send test notification', 'error');
+      } finally {
+        setTestingPush(false);
+      }
+      return;
+    }
     try {
       setTestingPush(true);
       const res = await fetch('/api/notifications/test', {
@@ -276,6 +346,7 @@ export default function Settings() {
       });
 
       if (res.ok) {
+        window.dispatchEvent(new Event('rupeerise:prefs-changed'));
         notify('Notification schedule and quiet hours updated successfully!');
       } else {
         notify('Failed to save notification preferences', 'error');

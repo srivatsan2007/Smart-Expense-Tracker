@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [salaries, setSalaries] = useState([]);
   const [bills, setBills] = useState([]);
   const [savingsGoals, setSavingsGoals] = useState([]);
+  const [archiveSummaries, setArchiveSummaries] = useState([]); // past months (for the spending trend)
   const [budget, setBudget] = useState(null);
   const [timeRange, setTimeRange] = useState('all'); // all | 6m | 3m
   const [customBalance, setCustomBalance] = useState(() => {
@@ -88,12 +89,13 @@ export default function Dashboard() {
       const currMonth = MONTH_NAMES[new Date().getMonth()];
       const currYear = new Date().getFullYear();
 
-      const [expRes, salRes, billRes, budRes, savRes] = await Promise.all([
+      const [expRes, salRes, billRes, budRes, savRes, archRes] = await Promise.all([
         fetch('/api/expenses', { headers }),
         fetch('/api/salaries', { headers }),
         fetch('/api/bills', { headers }),
         fetch(`/api/budget?month=${currMonth}&year=${currYear}`, { headers }),
         fetch('/api/savings', { headers }),
+        fetch('/api/archives', { headers }).catch(() => null),
       ]);
 
       if (expRes.ok) setExpenses(await expRes.json());
@@ -101,6 +103,10 @@ export default function Dashboard() {
       if (billRes.ok) setBills(await billRes.json());
       if (budRes.ok) setBudget(await budRes.json());
       if (savRes.ok) setSavingsGoals(await savRes.json());
+      if (archRes && archRes.ok) {
+        const list = await archRes.json();
+        setArchiveSummaries(Array.isArray(list) ? list : []);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       notify('Could not load some dashboard data', 'error');
@@ -242,6 +248,11 @@ export default function Dashboard() {
   // Chart: Monthly Spending Bar
   const monthlyChartConfig = useMemo(() => {
     const byMonth = {};
+    // Past months come from the archive (oldest first), then the live current month
+    [...archiveSummaries].sort((a, b) => (a.key < b.key ? -1 : 1)).forEach((a) => {
+      const label = new Date(a.year, a.monthIndex, 1).toLocaleString('en-IN', { month: 'short', year: '2-digit' });
+      byMonth[label] = (byMonth[label] || 0) + Number(a.expenseTotal || 0);
+    });
     const sorted = [...expenses].sort((a, b) => new Date(a.date) - new Date(b.date));
 
     sorted.forEach((e) => {
@@ -298,7 +309,7 @@ export default function Dashboard() {
         },
       },
     };
-  }, [expenses, timeRange]);
+  }, [expenses, archiveSummaries, timeRange]);
 
   // Quick Action Handlers
   const handleAddExpense = async (e) => {
@@ -447,7 +458,7 @@ export default function Dashboard() {
         {/* Top Stat Cards */}
         <div className="stat-grid">
           <StatCard
-            title="Total Income"
+            title="Income This Month"
             value={formatINR(totalSal)}
             icon={Wallet}
             iconColor="var(--success-color)"
@@ -457,7 +468,7 @@ export default function Dashboard() {
           />
 
           <StatCard
-            title="Total Expenses"
+            title="Expenses This Month"
             value={formatINR(totalExp)}
             icon={Receipt}
             iconColor="var(--danger-color)"
@@ -482,7 +493,7 @@ export default function Dashboard() {
             icon={TrendingUp}
             iconColor="var(--primary-color)"
             iconBg="var(--primary-light)"
-            subtitle={totalSal > 0 ? 'Of total recorded income' : 'Record salary to calculate'}
+            subtitle={totalSal > 0 ? "Of this month's income" : 'Record salary to calculate'}
             badgeText={savingsRate !== null && Number(savingsRate) > 20 ? 'Healthy' : undefined}
             badgeType="success"
           />

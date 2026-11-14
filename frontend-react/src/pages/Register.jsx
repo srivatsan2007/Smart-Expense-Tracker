@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../css/style.css';
 import '../css/auth.css';
 import { registerUser } from '../hooks/useAuth.js';
+import TermsCheckbox from '../components/TermsCheckbox.jsx';
+import { recordTermsAcceptance } from '../utils/terms.js';
 import {
   Wallet,
   Lock,
@@ -25,6 +27,7 @@ export default function Register() {
     role: 'user'
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -47,6 +50,11 @@ export default function Register() {
       return;
     }
 
+    if (!acceptedTerms) {
+      setError('Please accept the Terms & Conditions to create your account.');
+      return;
+    }
+
     setLoading(true);
     try {
       await registerUser(
@@ -55,6 +63,7 @@ export default function Register() {
         form.mobileNumber.trim(),
         form.password
       );
+      recordTermsAcceptance();
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed, please try again.');
@@ -176,10 +185,12 @@ export default function Register() {
             </div>
           </div>
 
+          <TermsCheckbox checked={acceptedTerms} onChange={setAcceptedTerms} id="registerTerms" />
+
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading}
+            disabled={loading || !acceptedTerms}
             style={{ justifyContent: 'center', gap: 8 }}
           >
             {loading ? (

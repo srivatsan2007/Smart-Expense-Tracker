@@ -152,8 +152,8 @@ export default function Reports() {
       setDataLoading(true);
       const headers = await getFreshAuthHeaders();
       const [expRes, salRes] = await Promise.all([
-        fetch('/api/expenses', { headers }).catch(() => null),
-        fetch('/api/salaries', { headers }).catch(() => null)
+        fetch('/api/expenses?includeArchived=true', { headers }).catch(() => null),
+        fetch('/api/salaries?includeArchived=true', { headers }).catch(() => null)
       ]);
       if (expRes && expRes.ok) {
         const expData = await expRes.json();

@@ -7,6 +7,7 @@ import EmptyState from '../components/EmptyState.jsx';
 import { notify } from '../components/Toast.jsx';
 import { formatINR } from '../utils/formatters.js';
 import { getAuthHeaders } from '../hooks/useAuth.js';
+import { Link } from 'react-router-dom';
 import {
   Wallet,
   Plus,
@@ -30,6 +31,7 @@ const emptyForm = () => ({
 
 export default function Salary() {
   const [salaries, setSalaries] = useState([]);
+  const [lastMonth, setLastMonth] = useState(null); // archived summary of the previous month, if any
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
@@ -56,14 +58,24 @@ export default function Salary() {
 
   useEffect(() => {
     fetchSalaries();
+    (async () => {
+      try {
+        const res = await fetch('/api/archives', { headers: getAuthHeaders() });
+        if (!res.ok) return;
+        const list = await res.json();
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const key = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+        setLastMonth((Array.isArray(list) ? list : []).find((a) => a.key === key) || null);
+      } catch { /* optional */ }
+    })();
   }, []);
 
   const stats = useMemo(() => {
     const total = salaries.reduce((acc, s) => acc + (Number(s.amount) || 0), 0);
     const count = salaries.length;
-    const avg = count > 0 ? total / count : 0;
     const max = count > 0 ? Math.max(...salaries.map((s) => Number(s.amount) || 0)) : 0;
-    return { total, count, avg, max };
+    return { total, count, max };
   }, [salaries]);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -92,7 +104,12 @@ export default function Salary() {
       });
 
       if (res.ok) {
-        notify('Salary recorded successfully!', 'success');
+        const saved = await res.json().catch(() => ({}));
+        if (saved.archivedMonth) {
+          notify('Saved to your Monthly History (it belongs to a past month)', 'success');
+        } else {
+          notify('Salary recorded successfully!', 'success');
+        }
         setForm(emptyForm());
         setIsAddOpen(false);
         fetchSalaries();
@@ -132,7 +149,7 @@ export default function Salary() {
     <Layout title="Salary - RupeeRise" active="salary">
       <PageHeader
         title="Salary & Income Management"
-        subtitle="Track recurring earnings, view monthly income history, and optimize your savings"
+        subtitle={`Income for ${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}. This page starts from zero every month; past months are in Monthly History.`}
         action={
           <button
             type="button"
@@ -151,33 +168,33 @@ export default function Salary() {
       {/* Stats Overview */}
       <div className="stats-grid">
         <StatCard
-          label="Total Income Recorded"
+          label="Income This Month"
           value={formatINR(stats.total)}
-          sub="Cumulative tracked income"
+          sub="Recorded so far this month"
           icon={<Wallet size={22} />}
-          badge="Lifetime"
+          badge="This Month"
           variant="success"
         />
         <StatCard
-          label="Average Monthly Income"
-          value={formatINR(stats.avg)}
-          sub={stats.count > 0 ? `Across ${stats.count} recorded months` : 'No data yet'}
+          label="Last Month"
+          value={lastMonth ? formatINR(lastMonth.salaryTotal) : '-'}
+          sub={lastMonth ? `${lastMonth.label} (archived)` : 'No archived month yet'}
           icon={<TrendingUp size={22} />}
-          badge="Monthly Avg"
+          badge="Previous"
           variant="primary"
         />
         <StatCard
-          label="Peak Monthly Earning"
+          label="Largest Credit"
           value={formatINR(stats.max)}
-          sub="Highest monthly credit"
+          sub="Highest single entry this month"
           icon={<IndianRupee size={22} />}
           badge="High Mark"
           variant="default"
         />
         <StatCard
           label="Pay Records"
-          value={`${stats.count} ${stats.count === 1 ? 'Month' : 'Months'}`}
-          sub="Documented income entries"
+          value={`${stats.count} ${stats.count === 1 ? 'Entry' : 'Entries'}`}
+          sub="Income entries this month"
           icon={<CalendarCheck size={22} />}
           badge="Entries"
           variant="default"
@@ -197,9 +214,9 @@ export default function Salary() {
           }}
         >
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 600 }}>Income History</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 600 }}>This Month's Income</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 2 }}>
-              Chronological log of verified salary payments
+              Past months are saved automatically in <Link to="/history" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Monthly History</Link>
             </p>
           </div>
           {salaries.length > 0 && (
@@ -217,8 +234,8 @@ export default function Salary() {
         ) : salaries.length === 0 ? (
           <EmptyState
             icon={<Wallet size={36} />}
-            title="No Salary Records Yet"
-            description="Recording your monthly income allows Smart Tracker to accurately compute your monthly savings rate, remaining cashflow, and net balance."
+            title="No Income Recorded This Month"
+            description="A new month has started with a clean slate. Record this month's salary to compute your savings rate, remaining cashflow and net balance."
             actionLabel="Record First Income"
             onAction={() => {
               setForm(emptyForm());

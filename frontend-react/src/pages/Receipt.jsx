@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import firebase from 'firebase/compat/app';
 import { jsPDF } from 'jspdf';
+import QRCode from 'qrcode';
 import { Download, AlertCircle, ArrowLeft, Shield, CheckCircle2, CreditCard } from '../components/Icons.jsx';
 import AtmSplitReceipt from '../components/AtmSplitReceipt.jsx';
+import { requestReceiptSignature, buildVerifyUrl, shortFingerprint } from '../utils/signing.js';
 import '../css/style.css';
 
 // Builds the receipt PDF on the fly from the Firestore document.
-function buildReceiptPdf(expenseData) {
+// `signature` is the server-issued digital signature (or null if signing was unavailable).
+async function buildReceiptPdf(expenseData, signature) {
   const doc = new jsPDF();
   doc.setFillColor(31, 51, 40);
   doc.rect(0, 0, 210, 40, 'F');
@@ -58,11 +61,51 @@ function buildReceiptPdf(expenseData) {
   doc.setTextColor(53, 94, 59);
   doc.text(`Rs. ${(expenseData.totalAmount || expenseData.amount || 0).toFixed(2)}`, 155, y);
 
-  y += 35;
+  y += 25;
+  if (y > 225) {
+    doc.addPage();
+    y = 30;
+  }
+
+  doc.setDrawColor(224, 232, 220);
+  doc.setLineWidth(0.3);
+  doc.line(20, y - 6, 190, y - 6);
   doc.setTextColor(100, 112, 103);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
-  doc.text('Digitally Verified & Encrypted by RupeeRise Platform', 20, y);
+
+  if (signature) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(53, 94, 59);
+    doc.text('Digitally signed by RupeeRise (X.509 certificate)', 20, y);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 112, 103);
+    const algoLabel = String(signature.algorithm || 'sha256').toUpperCase();
+    const lines = [
+      `Doc ID: ${signature.docId}   |   ${signature.scheme}`,
+      `Digest (${algoLabel}):`,
+      signature.hash,
+      `Certificate SHA-256: ${shortFingerprint(signature.certFingerprint)}`,
+    ];
+    let ly = y + 6;
+    lines.forEach((line) => {
+      const wrapped = doc.splitTextToSize(line, 118);
+      doc.text(wrapped, 20, ly);
+      ly += 4.5 * wrapped.length;
+    });
+
+    // QR code -> public verification page (checks the signature on the server)
+    const qr = await QRCode.toDataURL(buildVerifyUrl(signature.docId, signature.hash), { width: 240, margin: 1 });
+    doc.addImage(qr, 'PNG', 152, y - 3, 38, 38);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(53, 94, 59);
+    doc.text('Scan to verify', 171, y + 38, { align: 'center' });
+  } else {
+    doc.text('Not digitally signed (signing service unavailable when this receipt was opened).', 20, y);
+  }
   return doc.output('blob');
 }
 
@@ -98,7 +141,9 @@ export default function Receipt() {
           return;
         }
         try {
-          pdfBlob.current = buildReceiptPdf(data);
+          // Idempotent on the server: returns the existing signature if the receipt is unchanged
+          const signature = await requestReceiptSignature(expenseId);
+          pdfBlob.current = await buildReceiptPdf(data, signature);
           setPdfUrl(URL.createObjectURL(pdfBlob.current));
           setStatus('ready');
         } catch (err) {

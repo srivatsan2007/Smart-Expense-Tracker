@@ -8,3 +8,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SIGN_ALGO
+        value: sha256
+      - key: SIGN_PRIVATE_KEY   # paste the value printed by `npm run gen:cert`
+        sync: false
+      - key: SIGN_CERT_PEM      # paste the value printed by `npm run gen:cert`
+        sync: false

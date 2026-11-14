@@ -1,4 +1,20 @@
 const { admin } = require('../db');
+const { rolloverUser } = require('../services/monthlyRollover');
+const { currentMonthKey, monthKeyOfSalary } = require('../services/monthUtils');
+
+// If a salary is recorded for a past month it belongs in that month's archive right away
+const archiveIfPastMonth = async (userId, record) => {
+  const key = monthKeyOfSalary(record);
+  if (key && key < currentMonthKey()) {
+    try {
+      await rolloverUser(admin.firestore(), userId, { force: true });
+      return key;
+    } catch (err) {
+      console.error('Immediate archive failed:', err.message);
+    }
+  }
+  return null;
+};
 
 // @desc    Get all salaries for a user
 // @route   GET /api/salaries
@@ -11,6 +27,11 @@ const getSalaries = async (req, res) => {
       .get();
       
     let salaries = snapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+
+    // Past months live in the archive; only the current month is shown unless asked otherwise
+    if (req.query.includeArchived !== 'true') {
+      salaries = salaries.filter(s => !s.archived);
+    }
     
     // Sort in memory to avoid requiring Firestore composite indexes
     salaries.sort((a, b) => {
@@ -42,7 +63,8 @@ const createSalary = async (req, res) => {
     };
 
     const docRef = await db.collection('salaries').add(salaryData);
-    res.status(201).json({ _id: docRef.id, ...salaryData });
+    const archivedMonth = await archiveIfPastMonth(req.user.id, salaryData);
+    res.status(201).json({ _id: docRef.id, ...salaryData, ...(archivedMonth && { archivedMonth }) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -71,8 +93,11 @@ const updateSalary = async (req, res) => {
 
       await salaryRef.update(updateData);
       
+      const archivedMonth = (month !== undefined || year !== undefined)
+        ? await archiveIfPastMonth(req.user.id, { ...doc.data(), ...updateData })
+        : null;
       const updatedDoc = await salaryRef.get();
-      res.json({ _id: updatedDoc.id, ...updatedDoc.data() });
+      res.json({ _id: updatedDoc.id, ...updatedDoc.data(), ...(archivedMonth && { archivedMonth }) });
     } else {
       res.status(404).json({ message: 'Salary not found' });
     }

@@ -216,7 +216,10 @@ export default function Expenses() {
           body: JSON.stringify(payload),
         });
         if (res.ok) {
-          notify(form.expenseType === 'monthly' ? 'Monthly expense recorded!' : 'Daily expense logged successfully!');
+          const saved = await res.json().catch(() => ({}));
+          notify(saved.archivedMonth
+            ? 'Saved to your Monthly History (it belongs to a past month)'
+            : form.expenseType === 'monthly' ? 'Monthly expense recorded!' : 'Daily expense logged successfully!');
           setModalOpen(false);
           fetchExpenses();
         } else {

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../css/style.css';
 import '../css/auth.css';
 import { loginUser, autoDetectAndLogin, loginWithGoogle } from '../hooks/useAuth.js';
+import TermsCheckbox from '../components/TermsCheckbox.jsx';
+import { hasAcceptedTerms, recordTermsAcceptance } from '../utils/terms.js';
 import { getBackendBaseUrl, setBackendBaseUrl } from '../utils/apiConfig.js';
 import {
   Wallet,
@@ -19,6 +21,7 @@ import {
 export default function Login() {
   const [form, setForm] = useState({ loginId: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(() => hasAcceptedTerms());
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
@@ -80,10 +83,15 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!acceptedTerms) {
+      setError('Please accept the Terms & Conditions to continue.');
+      return;
+    }
     setLoading(true);
 
     try {
       await loginUser(form.loginId.trim(), form.password);
+      recordTermsAcceptance();
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed, please check your credentials.');
@@ -94,9 +102,14 @@ export default function Login() {
 
   const handleGoogleSignIn = async () => {
     setError('');
+    if (!acceptedTerms) {
+      setError('Please accept the Terms & Conditions to continue.');
+      return;
+    }
     setGoogleLoading(true);
     try {
       await loginWithGoogle();
+      recordTermsAcceptance();
       navigate('/dashboard');
     } catch (err) {
       if (err.code !== 'auth/popup-closed-by-user') {
@@ -270,11 +283,13 @@ export default function Login() {
           </div>
         )}
 
+        <TermsCheckbox checked={acceptedTerms} onChange={setAcceptedTerms} id="loginTerms" />
+
         {/* Google 1-Click Auto Account Sign-In Button */}
         <button
           type="button"
           className="btn btn-secondary"
-          disabled={googleLoading || loading}
+          disabled={googleLoading || loading || !acceptedTerms}
           onClick={handleGoogleSignIn}
           style={{
             width: '100%',
@@ -288,6 +303,7 @@ export default function Login() {
             padding: '11px 16px',
             borderRadius: 12,
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            marginTop: 12,
             marginBottom: 16
           }}
         >
@@ -384,7 +400,7 @@ export default function Login() {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading || googleLoading}
+            disabled={loading || googleLoading || !acceptedTerms}
             style={{ justifyContent: 'center', gap: 8 }}
           >
             {loading ? (
